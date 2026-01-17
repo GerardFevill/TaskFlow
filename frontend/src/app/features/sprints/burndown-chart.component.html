@@ -1,0 +1,94 @@
+<div class="burndown-container">
+  @if (loading()) {
+    <div class="loading">Chargement...</div>
+  } @else if (error()) {
+    <div class="error">{{ error() }}</div>
+  } @else if (data()) {
+    <div class="chart-header">
+      <h4>Burndown Chart</h4>
+      <span class="total">{{ data()!.totalTickets }} tickets</span>
+    </div>
+    <svg [attr.viewBox]="'0 0 ' + width + ' ' + height" class="burndown-svg">
+      <!-- Grid lines -->
+      @for (line of gridLines(); track $index) {
+        <line
+          class="grid-line"
+          [attr.x1]="padding.left"
+          [attr.y1]="line.y"
+          [attr.x2]="width - padding.right"
+          [attr.y2]="line.y"
+        />
+        <text
+          class="axis-label"
+          [attr.x]="padding.left - 8"
+          [attr.y]="line.y + 4"
+          text-anchor="end"
+        >{{ line.value }}</text>
+      }
+
+      <!-- X-axis labels -->
+      @for (label of xLabels(); track $index) {
+        <text
+          class="axis-label x-label"
+          [attr.x]="label.x"
+          [attr.y]="height - padding.bottom + 16"
+          text-anchor="middle"
+        >{{ label.text }}</text>
+      }
+
+      <!-- Ideal line (dashed) -->
+      <line
+        class="ideal-line"
+        [attr.x1]="getX(0)"
+        [attr.y1]="getY(data()!.ideal[0])"
+        [attr.x2]="getX(data()!.days.length - 1)"
+        [attr.y2]="getY(data()!.ideal[data()!.ideal.length - 1])"
+      />
+
+      <!-- Actual line -->
+      <polyline
+        class="actual-line"
+        [attr.points]="actualPoints()"
+        fill="none"
+      />
+
+      <!-- Data points -->
+      @for (point of dataPoints(); track $index) {
+        <circle
+          class="data-point"
+          [attr.cx]="point.x"
+          [attr.cy]="point.y"
+          r="4"
+        >
+          <title>{{ point.date }}: {{ point.value }} restants</title>
+        </circle>
+      }
+
+      <!-- Today marker -->
+      @if (todayIndex() >= 0 && todayIndex() < data()!.days.length) {
+        <line
+          class="today-line"
+          [attr.x1]="getX(todayIndex())"
+          [attr.y1]="padding.top"
+          [attr.x2]="getX(todayIndex())"
+          [attr.y2]="height - padding.bottom"
+        />
+      }
+    </svg>
+    <div class="legend">
+      <span class="legend-item ideal">
+        <span class="line"></span> Idéal
+      </span>
+      <span class="legend-item actual">
+        <span class="line"></span> Réel
+      </span>
+      @if (todayIndex() >= 0) {
+        <span class="legend-item today">
+          <span class="line"></span> Aujourd'hui
+        </span>
+      }
+    </div>
+  } @else {
+    <div class="empty">Aucune donnée disponible</div>
+  }
+</div>

@@ -1,0 +1,70 @@
+<div class="page-header">
+  <i class="fas fa-archive"></i>
+  <h2>Archives</h2>
+  <span class="count">{{ archivedTickets().length }} ticket(s)</span>
+</div>
+
+@if (archivedTickets().length === 0) {
+  <div class="empty-state">
+    <i class="fas fa-box-open"></i>
+    <h3>Aucun ticket archive</h3>
+    <p>Les tickets archives apparaitront ici</p>
+  </div>
+} @else {
+  <div class="archives-grid">
+    @for (ticket of archivedTickets(); track ticket.id) {
+      <div class="archive-card" [class]="ticket.priority">
+        <div class="card-header">
+          <span class="priority"><i class="fas fa-circle"></i></span>
+          <span class="title">{{ ticket.title }}</span>
+          <span class="status-badge" [class]="ticket.status">{{ formatStatus(ticket.status) }}</span>
+        </div>
+
+        @if (ticket.description) {
+          <p class="description">{{ ticket.description | slice:0:100 }}{{ ticket.description.length > 100 ? '...' : '' }}</p>
+        }
+
+        <div class="card-meta">
+          @if (ticket.due_date) {
+            <span class="meta-item">
+              <i class="fas fa-calendar"></i> {{ formatDate(ticket.due_date) }}
+            </span>
+          }
+          @if (ticket.task_count) {
+            <span class="meta-item">
+              <i class="fas fa-tasks"></i> {{ ticket.task_done }}/{{ ticket.task_count }}
+            </span>
+          }
+          @if (ticket.time_spent) {
+            <span class="meta-item">
+              <i class="fas fa-stopwatch"></i> {{ formatMinutes(ticket.time_spent) }}
+            </span>
+          }
+        </div>
+
+        <div class="card-actions">
+          <button class="btn-restore" (click)="restoreTicket(ticket)">
+            <i class="fas fa-undo"></i> Restaurer
+          </button>
+          <button class="btn-view" (click)="viewTicket(ticket)">
+            <i class="fas fa-eye"></i> Voir
+          </button>
+          <button class="btn-delete" (click)="deleteTicket(ticket)">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+}
+
+@if (archivedTickets().length > 0) {
+  <div class="bulk-actions-bar">
+    <button class="btn-danger" (click)="deleteAll()">
+      <i class="fas fa-trash"></i> Supprimer tout
+    </button>
+    <button class="btn-restore-all" (click)="restoreAll()">
+      <i class="fas fa-undo"></i> Tout restaurer
+    </button>
+  </div>
+}

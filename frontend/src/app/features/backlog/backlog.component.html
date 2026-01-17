@@ -1,0 +1,366 @@
+<div class="page-header">
+  <i class="fas fa-inbox"></i>
+  <h2>Backlog</h2>
+  <a routerLink="/tickets/new" class="btn-new">
+    <i class="fas fa-plus"></i> Nouveau ticket
+  </a>
+</div>
+
+<!-- Onglets de vue -->
+<div class="view-tabs">
+  <button
+    class="tab-btn"
+    [class.active]="currentView() === 'all'"
+    (click)="setView('all')"
+  >
+    <i class="fas fa-layer-group"></i>
+    <span>Tous</span>
+    <span class="tab-count">{{ allUnassignedTickets().length }}</span>
+  </button>
+  <button
+    class="tab-btn"
+    [class.active]="currentView() === 'project'"
+    (click)="setView('project')"
+  >
+    <i class="fas fa-folder"></i>
+    <span>Par Projet</span>
+  </button>
+  <button
+    class="tab-btn"
+    [class.active]="currentView() === 'sprint'"
+    (click)="setView('sprint')"
+  >
+    <i class="fas fa-rocket"></i>
+    <span>Sprints</span>
+    <span class="tab-count">{{ ticketsWithoutSprint().length }}</span>
+  </button>
+  <button
+    class="tab-btn"
+    [class.active]="currentView() === 'epic'"
+    (click)="setView('epic')"
+  >
+    <i class="fas fa-flag"></i>
+    <span>Epics</span>
+    <span class="tab-count">{{ ticketsWithoutEpic().length }}</span>
+  </button>
+  <button
+    class="tab-btn"
+    [class.active]="currentView() === 'milestone'"
+    (click)="setView('milestone')"
+  >
+    <i class="fas fa-map-pin"></i>
+    <span>Milestones</span>
+    <span class="tab-count">{{ ticketsWithoutMilestone().length }}</span>
+  </button>
+</div>
+
+<!-- Vue: Tous les tickets non assignés -->
+@if (currentView() === 'all') {
+  <div class="view-content">
+    <div class="view-info">
+      <i class="fas fa-info-circle"></i>
+      <span>Tickets non assignés à aucun sprint, epic ou milestone.</span>
+    </div>
+
+    @if (allUnassignedTickets().length === 0) {
+      <div class="empty-state">
+        <i class="fas fa-check-circle"></i>
+        <h3>Tout est organisé !</h3>
+        <p>Tous les tickets sont assignés.</p>
+      </div>
+    } @else {
+      <div class="ticket-list">
+        @for (ticket of allUnassignedTickets(); track ticket.id) {
+          <ng-container *ngTemplateOutlet="ticketItem; context: { ticket, showAssignAll: true }"></ng-container>
+        }
+      </div>
+    }
+  </div>
+}
+
+<!-- Vue: Par Projet -->
+@if (currentView() === 'project') {
+  <div class="view-content">
+    <div class="view-info">
+      <i class="fas fa-info-circle"></i>
+      <span>Tickets groupés par projet.</span>
+    </div>
+
+    @for (project of projects(); track project.id) {
+      <div class="project-section">
+        <div class="section-header" (click)="toggleProjectExpanded(project.id)">
+          <i class="fas" [class]="project.icon || 'fa-folder'" [style.color]="project.color"></i>
+          <h3>{{ project.name }}</h3>
+          <span class="section-count">{{ getProjectTickets(project.id).length }} tickets</span>
+          <i class="fas chevron" [class.fa-chevron-down]="isProjectExpanded(project.id)" [class.fa-chevron-right]="!isProjectExpanded(project.id)"></i>
+        </div>
+        @if (isProjectExpanded(project.id)) {
+          <div class="section-content">
+            @if (getProjectTickets(project.id).length === 0) {
+              <div class="empty-section">Aucun ticket dans ce projet</div>
+            } @else {
+              @for (ticket of getProjectTickets(project.id); track ticket.id) {
+                <ng-container *ngTemplateOutlet="ticketItem; context: { ticket, showAssignAll: true }"></ng-container>
+              }
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+}
+
+<!-- Vue: Backlog Sprint -->
+@if (currentView() === 'sprint') {
+  <div class="view-content">
+    <div class="view-info">
+      <i class="fas fa-info-circle"></i>
+      <span>Tickets non assignés à un sprint. Glissez-les dans un sprint actif ou en planification.</span>
+    </div>
+
+    <div class="two-columns">
+      <!-- Backlog -->
+      <div class="backlog-column">
+        <div class="column-header">
+          <i class="fas fa-inbox"></i>
+          <h3>Backlog Sprint</h3>
+        </div>
+        <div class="column-content">
+          @if (ticketsWithoutSprint().length === 0) {
+            <div class="empty-column">Tous les tickets sont dans un sprint</div>
+          } @else {
+            @for (ticket of ticketsWithoutSprint(); track ticket.id) {
+              <ng-container *ngTemplateOutlet="ticketItemCompact; context: { ticket, assignType: 'sprint' }"></ng-container>
+            }
+          }
+        </div>
+      </div>
+
+      <!-- Sprints disponibles -->
+      <div class="targets-column">
+        <div class="column-header">
+          <i class="fas fa-rocket"></i>
+          <h3>Sprints</h3>
+        </div>
+        <div class="column-content">
+          @for (sprint of activeSprints(); track sprint.id) {
+            <div class="target-card" [class.active]="sprint.status === 'active'">
+              <div class="target-header">
+                <span class="target-name">{{ sprint.name }}</span>
+                <span class="target-status" [class]="sprint.status">
+                  {{ sprint.status === 'active' ? 'Actif' : 'Planification' }}
+                </span>
+              </div>
+              <div class="target-info">
+                <span><i class="fas fa-ticket-alt"></i> {{ sprint.ticket_count || 0 }} tickets</span>
+                <span><i class="fas fa-calendar"></i> {{ formatDate(sprint.end_date) }}</span>
+              </div>
+              <div class="target-actions">
+                <select (change)="assignToSprint($event, sprint.id)">
+                  <option value="">+ Ajouter ticket...</option>
+                  @for (ticket of ticketsWithoutSprint(); track ticket.id) {
+                    <option [value]="ticket.id">{{ ticket.title }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+          }
+          @if (activeSprints().length === 0) {
+            <div class="empty-column">
+              <p>Aucun sprint actif ou en planification</p>
+              <a routerLink="/sprints" class="btn-small">Créer un sprint</a>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Vue: Backlog Epic -->
+@if (currentView() === 'epic') {
+  <div class="view-content">
+    <div class="view-info">
+      <i class="fas fa-info-circle"></i>
+      <span>Tickets non assignés à un epic. Organisez-les par thème ou fonctionnalité.</span>
+    </div>
+
+    <div class="two-columns">
+      <!-- Backlog -->
+      <div class="backlog-column">
+        <div class="column-header">
+          <i class="fas fa-inbox"></i>
+          <h3>Backlog Epic</h3>
+        </div>
+        <div class="column-content">
+          @if (ticketsWithoutEpic().length === 0) {
+            <div class="empty-column">Tous les tickets sont dans un epic</div>
+          } @else {
+            @for (ticket of ticketsWithoutEpic(); track ticket.id) {
+              <ng-container *ngTemplateOutlet="ticketItemCompact; context: { ticket, assignType: 'epic' }"></ng-container>
+            }
+          }
+        </div>
+      </div>
+
+      <!-- Epics disponibles -->
+      <div class="targets-column">
+        <div class="column-header">
+          <i class="fas fa-flag"></i>
+          <h3>Epics</h3>
+        </div>
+        <div class="column-content">
+          @for (epic of openEpics(); track epic.id) {
+            <div class="target-card" [style.border-left-color]="epic.color">
+              <div class="target-header">
+                <span class="target-name">{{ epic.name }}</span>
+                <span class="epic-color" [style.background]="epic.color"></span>
+              </div>
+              <div class="target-info">
+                <span><i class="fas fa-ticket-alt"></i> {{ epic.ticket_count || 0 }} tickets</span>
+                <span><i class="fas fa-check"></i> {{ epic.ticket_done || 0 }} terminés</span>
+              </div>
+              <div class="target-actions">
+                <select (change)="assignToEpic($event, epic.id)">
+                  <option value="">+ Ajouter ticket...</option>
+                  @for (ticket of ticketsWithoutEpic(); track ticket.id) {
+                    <option [value]="ticket.id">{{ ticket.title }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+          }
+          @if (openEpics().length === 0) {
+            <div class="empty-column">
+              <p>Aucun epic ouvert</p>
+              <a routerLink="/epics" class="btn-small">Créer un epic</a>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Vue: Backlog Milestone -->
+@if (currentView() === 'milestone') {
+  <div class="view-content">
+    <div class="view-info">
+      <i class="fas fa-info-circle"></i>
+      <span>Tickets non assignés à un milestone. Planifiez-les selon vos jalons.</span>
+    </div>
+
+    <div class="two-columns">
+      <!-- Backlog -->
+      <div class="backlog-column">
+        <div class="column-header">
+          <i class="fas fa-inbox"></i>
+          <h3>Backlog Milestone</h3>
+        </div>
+        <div class="column-content">
+          @if (ticketsWithoutMilestone().length === 0) {
+            <div class="empty-column">Tous les tickets ont un milestone</div>
+          } @else {
+            @for (ticket of ticketsWithoutMilestone(); track ticket.id) {
+              <ng-container *ngTemplateOutlet="ticketItemCompact; context: { ticket, assignType: 'milestone' }"></ng-container>
+            }
+          }
+        </div>
+      </div>
+
+      <!-- Milestones disponibles -->
+      <div class="targets-column">
+        <div class="column-header">
+          <i class="fas fa-map-pin"></i>
+          <h3>Milestones</h3>
+        </div>
+        <div class="column-content">
+          @for (milestone of openMilestones(); track milestone.id) {
+            <div class="target-card" [class.overdue]="isOverdue(milestone.due_date)">
+              <div class="target-header">
+                <span class="target-name">{{ milestone.name }}</span>
+              </div>
+              <div class="target-info">
+                <span><i class="fas fa-ticket-alt"></i> {{ milestone.ticket_count || 0 }} tickets</span>
+                <span [class.overdue]="isOverdue(milestone.due_date)">
+                  <i class="fas fa-calendar"></i> {{ formatDate(milestone.due_date) }}
+                </span>
+              </div>
+              <div class="target-actions">
+                <select (change)="assignToMilestone($event, milestone.id)">
+                  <option value="">+ Ajouter ticket...</option>
+                  @for (ticket of ticketsWithoutMilestone(); track ticket.id) {
+                    <option [value]="ticket.id">{{ ticket.title }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+          }
+          @if (openMilestones().length === 0) {
+            <div class="empty-column">
+              <p>Aucun milestone ouvert</p>
+              <a routerLink="/milestones" class="btn-small">Créer un milestone</a>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Template: Ticket Item Full -->
+<ng-template #ticketItem let-ticket="ticket" let-showAssignAll="showAssignAll">
+  <div class="ticket-item">
+    <div class="ticket-priority">
+      <span class="priority-dot" [class]="ticket.priority"></span>
+    </div>
+    <div class="ticket-content">
+      <a [routerLink]="['/ticket', ticket.id]" class="ticket-title">{{ ticket.title }}</a>
+      <div class="ticket-meta">
+        @if (ticket.project_name) {
+          <span class="meta-tag">
+            <i class="fas fa-folder"></i> {{ ticket.project_name }}
+          </span>
+        }
+        @if (ticket.due_date) {
+          <span class="meta-tag" [class.overdue]="isOverdue(ticket.due_date)">
+            <i class="fas fa-calendar"></i> {{ formatDate(ticket.due_date) }}
+          </span>
+        }
+      </div>
+    </div>
+    @if (showAssignAll) {
+      <div class="ticket-assigns">
+        <select (change)="quickAssign(ticket.id, 'sprint', $event)" title="Sprint">
+          <option value="">Sprint...</option>
+          @for (sprint of activeSprints(); track sprint.id) {
+            <option [value]="sprint.id">{{ sprint.name }}</option>
+          }
+        </select>
+        <select (change)="quickAssign(ticket.id, 'epic', $event)" title="Epic">
+          <option value="">Epic...</option>
+          @for (epic of openEpics(); track epic.id) {
+            <option [value]="epic.id">{{ epic.name }}</option>
+          }
+        </select>
+        <select (change)="quickAssign(ticket.id, 'milestone', $event)" title="Milestone">
+          <option value="">Milestone...</option>
+          @for (milestone of openMilestones(); track milestone.id) {
+            <option [value]="milestone.id">{{ milestone.name }}</option>
+          }
+        </select>
+      </div>
+    }
+  </div>
+</ng-template>
+
+<!-- Template: Ticket Item Compact -->
+<ng-template #ticketItemCompact let-ticket="ticket" let-assignType="assignType">
+  <div class="ticket-item-compact">
+    <span class="priority-dot" [class]="ticket.priority"></span>
+    <a [routerLink]="['/ticket', ticket.id]" class="ticket-title">{{ ticket.title }}</a>
+    @if (ticket.project_name) {
+      <span class="project-tag">{{ ticket.project_name }}</span>
+    }
+  </div>
+</ng-template>

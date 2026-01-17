@@ -1,0 +1,107 @@
+<div class="page-header">
+  <i class="fas fa-list"></i>
+  <h2>Liste</h2>
+  <span class="count">{{ filteredTickets().length }} ticket(s)</span>
+</div>
+
+<!-- Filtres -->
+<div class="filters-bar">
+  <input type="text" [(ngModel)]="searchQuery" placeholder="Rechercher..." class="search-input" (input)="applyFilters()">
+
+  <select [(ngModel)]="statusFilter" (change)="applyFilters()">
+    <option value="">Tous statuts</option>
+    <option value="todo">A faire</option>
+    <option value="in_progress">En cours</option>
+    <option value="done">Termine</option>
+  </select>
+
+  <select [(ngModel)]="priorityFilter" (change)="applyFilters()">
+    <option value="">Toutes priorites</option>
+    <option value="do">Faire</option>
+    <option value="plan">Planifier</option>
+    <option value="delegate">Deleguer</option>
+    <option value="eliminate">Eliminer</option>
+  </select>
+
+  <select [(ngModel)]="sortBy" (change)="applyFilters()">
+    <option value="id-desc">Plus recent</option>
+    <option value="id-asc">Plus ancien</option>
+    <option value="title-asc">Nom A-Z</option>
+    <option value="title-desc">Nom Z-A</option>
+    <option value="due-asc">Echeance proche</option>
+    <option value="due-desc">Echeance lointaine</option>
+    <option value="priority">Priorite</option>
+  </select>
+</div>
+
+<!-- Tableau -->
+<div class="table-container">
+  <table class="tickets-table">
+    <thead>
+      <tr>
+        <th class="col-pin"></th>
+        <th class="col-priority">Priorite</th>
+        <th class="col-title">Titre</th>
+        <th class="col-status">Statut</th>
+        <th class="col-due">Echeance</th>
+        <th class="col-tasks">Taches</th>
+        <th class="col-actions"></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (ticket of filteredTickets(); track ticket.id) {
+        <tr [class.pinned]="ticket.pinned" [class.done]="ticket.status === 'done'" (click)="openTicket(ticket)">
+          <td class="col-pin" (click)="togglePin(ticket, $event)">
+            <i class="fas" [class.fa-star]="ticket.pinned" [class.fa-star-o]="!ticket.pinned" [class.pinned]="ticket.pinned"></i>
+          </td>
+          <td class="col-priority">
+            <span class="priority-badge" [class]="ticket.priority">
+              {{ getPriorityLabel(ticket.priority) }}
+            </span>
+          </td>
+          <td class="col-title">
+            <span class="title">{{ ticket.title }}</span>
+            @if (ticket.labels && ticket.labels.length > 0) {
+              <div class="labels">
+                @for (label of ticket.labels; track label.id) {
+                  <span class="label-badge" [style.background]="label.color">{{ label.name }}</span>
+                }
+              </div>
+            }
+          </td>
+          <td class="col-status">
+            <span class="status-badge" [class]="ticket.status">{{ getStatusLabel(ticket.status) }}</span>
+          </td>
+          <td class="col-due" [class.overdue]="isOverdue(ticket)">
+            {{ ticket.due_date ? formatDate(ticket.due_date) : '-' }}
+          </td>
+          <td class="col-tasks">
+            @if (ticket.task_count) {
+              <div class="task-progress">
+                <div class="progress-bar">
+                  <div class="progress" [style.width.%]="getProgress(ticket)"></div>
+                </div>
+                <span>{{ ticket.task_done }}/{{ ticket.task_count }}</span>
+              </div>
+            } @else {
+              -
+            }
+          </td>
+          <td class="col-actions" (click)="$event.stopPropagation()">
+            <button class="action-btn" (click)="deleteTicket(ticket)" title="Supprimer">
+              <i class="fas fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+
+  @if (filteredTickets().length === 0) {
+    <div class="empty-state">
+      <i class="fas fa-inbox"></i>
+      <h3>Aucun ticket trouve</h3>
+      <p>Modifiez vos filtres ou creez un nouveau ticket</p>
+    </div>
+  }
+</div>

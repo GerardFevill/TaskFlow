@@ -1,0 +1,466 @@
+@if (ticket()) {
+  <div class="detail-header">
+    <button class="back-btn" (click)="goBack()">
+      <i class="fas fa-arrow-left"></i>
+    </button>
+    <span class="priority" [class]="ticket()!.priority"><i class="fas fa-circle"></i></span>
+    @if (editingTitle()) {
+      <input class="title-edit-input" [(ngModel)]="editTitle" (blur)="saveTitle()" (keyup.enter)="saveTitle()" (keyup.escape)="cancelEditTitle()">
+    } @else {
+      <h2>{{ ticket()!.title }}</h2>
+      <button class="edit-title-btn" (click)="startEditTitle()" title="Modifier le titre">
+        <i class="fas fa-pen"></i>
+      </button>
+    }
+    <button class="btn-secondary" (click)="duplicateTicket()" title="Dupliquer">
+      <i class="fas fa-copy"></i> Dupliquer
+    </button>
+    <div class="dropdown">
+      <button class="btn-secondary" title="Transformer">
+        <i class="fas fa-exchange-alt"></i> Transformer
+      </button>
+      <div class="dropdown-menu">
+        <button (click)="convertToProject()">
+          <i class="fas fa-folder"></i> En projet
+        </button>
+        <button (click)="showConvertToTask()">
+          <i class="fas fa-tasks"></i> En tache
+        </button>
+      </div>
+    </div>
+    <button class="btn-secondary" (click)="toggleArchive()">
+      <i class="fas" [class.fa-archive]="!ticket()!.archived" [class.fa-box-open]="ticket()!.archived"></i>
+      {{ ticket()!.archived ? 'Desarchiver' : 'Archiver' }}
+    </button>
+    <button class="btn danger" (click)="deleteTicket()">
+      <i class="fas fa-trash"></i>
+    </button>
+  </div>
+
+  <!-- Modal: Convertir en tache -->
+  @if (showConvertToTaskModal()) {
+    <div class="modal-backdrop" (click)="showConvertToTaskModal.set(false)">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h3><i class="fas fa-tasks"></i> Convertir en tache</h3>
+        <p>Choisir le ticket dans lequel ajouter cette tache :</p>
+        <select [(ngModel)]="targetTicketId" class="form-select">
+          <option [value]="0">Selectionner un ticket...</option>
+          @for (t of availableTickets(); track t.id) {
+            <option [value]="t.id">{{ t.title }}</option>
+          }
+        </select>
+        <div class="modal-actions">
+          <button class="btn-secondary" (click)="showConvertToTaskModal.set(false)">Annuler</button>
+          <button class="btn-primary" (click)="convertToTask()" [disabled]="!targetTicketId">Convertir</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button [class.active]="tab() === 'info'" (click)="tab.set('info')">
+      <i class="fas fa-info-circle"></i> Info
+    </button>
+    <button [class.active]="tab() === 'tasks'" (click)="tab.set('tasks')">
+      <i class="fas fa-check-square"></i> Taches ({{ tasks().length }})
+    </button>
+    <button [class.active]="tab() === 'time'" (click)="tab.set('time')">
+      <i class="fas fa-stopwatch"></i> Temps
+    </button>
+    <button [class.active]="tab() === 'files'" (click)="tab.set('files')">
+      <i class="fas fa-paperclip"></i> Fichiers ({{ attachments().length }})
+    </button>
+    <button [class.active]="tab() === 'activity'" (click)="tab.set('activity'); loadActivity()">
+      <i class="fas fa-history"></i> Activite
+    </button>
+  </div>
+
+  <div class="tab-content">
+    <!-- TAB: INFO -->
+    @if (tab() === 'info') {
+      <div class="info-grid">
+        <div class="card">
+          <h3>Proprietes</h3>
+          <div class="meta-row">
+            <label><i class="fas fa-flag"></i> Priorite</label>
+            <select [(ngModel)]="ticket()!.priority" (change)="updateTicket()">
+              <option value="do">Faire</option>
+              <option value="plan">Planifier</option>
+              <option value="delegate">Deleguer</option>
+              <option value="eliminate">Eliminer</option>
+            </select>
+          </div>
+          <div class="meta-row">
+            <label><i class="fas fa-tasks"></i> Statut</label>
+            <select [(ngModel)]="ticket()!.status" (change)="updateTicket()">
+              <option value="todo">A faire</option>
+              <option value="in_progress">En cours</option>
+              <option value="done">Termine</option>
+            </select>
+          </div>
+          <div class="meta-row">
+            <label><i class="fas fa-calendar-plus"></i> Debut</label>
+            <input type="date" [(ngModel)]="ticket()!.start_date" (change)="updateTicket()">
+          </div>
+          <div class="meta-row">
+            <label><i class="fas fa-calendar"></i> Echeance</label>
+            <input type="date" [(ngModel)]="ticket()!.due_date" (change)="updateTicket()">
+          </div>
+          <div class="meta-row">
+            <label><i class="fas fa-sync"></i> Recurrence</label>
+            <select [(ngModel)]="ticket()!.recurrence" (change)="updateTicket()">
+              <option value="none">Aucune</option>
+              <option value="daily">Quotidienne</option>
+              <option value="weekly">Hebdomadaire</option>
+              <option value="monthly">Mensuelle</option>
+              <option value="yearly">Annuelle</option>
+            </select>
+          </div>
+          <div class="meta-row">
+            <label><i class="fas fa-bell"></i> Rappel</label>
+            <div class="input-suffix">
+              <input type="number" min="0" [(ngModel)]="ticket()!.reminder_days" (change)="updateTicket()">
+              <span>jours avant</span>
+            </div>
+          </div>
+          <div class="meta-row">
+            <label><i class="fas fa-folder"></i> Projet</label>
+            <select [(ngModel)]="ticket()!.project_id" (change)="updateTicket()">
+              @for (project of projects(); track project.id) {
+                <option [value]="project.id">{{ project.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="meta-row">
+            <label><i class="fas fa-flag"></i> Epic</label>
+            <select [(ngModel)]="ticket()!.epic_id" (change)="updateTicket()">
+              <option [ngValue]="null">Aucun epic</option>
+              @for (epic of epics(); track epic.id) {
+                <option [value]="epic.id">{{ epic.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="meta-row">
+            <label><i class="fas fa-rocket"></i> Sprint</label>
+            <select [(ngModel)]="ticket()!.sprint_id" (change)="updateTicket()">
+              <option [ngValue]="null">Aucun sprint</option>
+              @for (sprint of sprints(); track sprint.id) {
+                <option [value]="sprint.id">{{ sprint.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="meta-row">
+            <label><i class="fas fa-map-pin"></i> Jalon</label>
+            <select [(ngModel)]="ticket()!.milestone_id" (change)="updateTicket()">
+              <option [ngValue]="null">Aucun jalon</option>
+              @for (milestone of milestones(); track milestone.id) {
+                <option [value]="milestone.id">{{ milestone.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="meta-row">
+            <label><i class="fas fa-star"></i> Favori</label>
+            <button class="pin-btn" [class.pinned]="ticket()!.pinned" (click)="togglePin()">
+              <i class="fas" [class.fa-star]="ticket()!.pinned" [class.fa-star-o]="!ticket()!.pinned"></i>
+              {{ ticket()!.pinned ? 'Epingle' : 'Epingler' }}
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3><i class="fas fa-tags"></i> Etiquettes</h3>
+          <div class="labels-container">
+            @for (label of ticketLabels(); track label.id) {
+              <span class="label-tag" [style.background]="label.color">
+                {{ label.name }}
+                <button (click)="removeLabel(label)"><i class="fas fa-times"></i></button>
+              </span>
+            }
+            <select class="add-label" (change)="addLabel($event)">
+              <option value="">+ Ajouter existant</option>
+              @for (label of availableLabels(); track label.id) {
+                <option [value]="label.id">{{ label.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="new-label-form">
+            <input
+              type="text"
+              [(ngModel)]="newLabelName"
+              placeholder="Nouveau label..."
+              (keyup.enter)="createAndAddLabel()"
+              class="new-label-input"
+            >
+            <button class="btn btn-small" (click)="createAndAddLabel()" [disabled]="!newLabelName.trim()">
+              <i class="fas fa-plus"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3><i class="fas fa-link"></i> Dependances</h3>
+          @if (dependencies().blockedBy.length > 0) {
+            <div class="dep-section">
+              <span class="dep-label">Bloque par:</span>
+              @for (dep of dependencies().blockedBy; track dep.id) {
+                <div class="dep-item" (click)="openTicket(dep.id)">
+                  <span class="dep-status" [class]="dep.status"></span>
+                  <span>{{ dep.title }}</span>
+                  <button class="remove-dep" (click)="removeDependency(dep.id, $event)">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+              }
+            </div>
+          }
+          @if (dependencies().blocks.length > 0) {
+            <div class="dep-section">
+              <span class="dep-label">Bloque:</span>
+              @for (dep of dependencies().blocks; track dep.id) {
+                <div class="dep-item" (click)="openTicket(dep.id)">
+                  <span class="dep-status" [class]="dep.status"></span>
+                  <span>{{ dep.title }}</span>
+                </div>
+              }
+            </div>
+          }
+          <div class="add-dep-form">
+            <select [(ngModel)]="newDependencyId">
+              <option value="">Ajouter une dependance...</option>
+              @for (t of availableTickets(); track t.id) {
+                <option [value]="t.id">#{{ t.id }} - {{ t.title }}</option>
+              }
+            </select>
+            <button class="btn-add-dep" (click)="addDependency()" [disabled]="!newDependencyId">
+              <i class="fas fa-plus"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3><i class="fas fa-align-left"></i> Description</h3>
+        <textarea [(ngModel)]="ticket()!.description" (blur)="updateTicket()" placeholder="Ajouter une description..."></textarea>
+      </div>
+
+      <div class="card">
+        <h3><i class="fas fa-comments"></i> Commentaires</h3>
+        <div class="form-row">
+          <input [(ngModel)]="newComment" placeholder="Ajouter un commentaire..." (keyup.enter)="addComment()">
+          <button class="btn" (click)="addComment()"><i class="fas fa-check"></i> Valider</button>
+        </div>
+        <div class="comments-list">
+          @for (comment of comments(); track comment.id) {
+            <div class="comment">
+              <div class="comment-header">
+                <span class="comment-date">{{ formatDateTime(comment.created_at) }}</span>
+                <button class="delete-btn" (click)="deleteComment(comment)"><i class="fas fa-trash"></i></button>
+              </div>
+              <p>{{ comment.text }}</p>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- TAB: TASKS -->
+    @if (tab() === 'tasks') {
+      <div class="card">
+        <div class="form-row">
+          <input [(ngModel)]="newTask" placeholder="Nouvelle tache..." (keyup.enter)="addTask()">
+          <button class="btn" (click)="addTask()"><i class="fas fa-plus"></i> Ajouter</button>
+        </div>
+
+        <div class="task-list">
+          @for (task of tasks(); track task.id; let i = $index) {
+            <div class="task-item"
+                 [class.done]="task.done"
+                 [class.dragging]="draggedTaskId() === task.id"
+                 [class.drag-over]="dragOverIndex() === i"
+                 draggable="true"
+                 (dragstart)="onTaskDragStart($event, task, i)"
+                 (dragend)="onTaskDragEnd()"
+                 (dragover)="onTaskDragOver($event, i)"
+                 (drop)="onTaskDrop($event, i)">
+              <div class="task-main">
+                <i class="fas fa-grip-vertical drag-handle"></i>
+                <input type="checkbox" [checked]="task.done" (change)="toggleTask(task)">
+                <span>{{ task.text }}</span>
+                <button class="icon-btn" (click)="toggleSubtasks(task)" title="Sous-taches">
+                  <i class="fas fa-sitemap"></i>
+                </button>
+                <button class="icon-btn" (click)="convertTaskToTicket(task)" title="Convertir en ticket">
+                  <i class="fas fa-ticket-alt"></i>
+                </button>
+                <button class="icon-btn" (click)="convertTaskToProject(task)" title="Convertir en projet">
+                  <i class="fas fa-folder-plus"></i>
+                </button>
+                <button class="delete-btn" (click)="deleteTask(task)"><i class="fas fa-trash"></i></button>
+              </div>
+              @if (expandedTask() === task.id) {
+                <div class="subtasks">
+                  <div class="form-row small">
+                    <input [(ngModel)]="newSubtask" placeholder="Nouvelle sous-tache..." (keyup.enter)="addSubtask(task)">
+                    <button class="btn" (click)="addSubtask(task)"><i class="fas fa-plus"></i></button>
+                  </div>
+                  @for (sub of task.subtasks; track sub.id) {
+                    <div class="subtask" [class.done]="sub.done">
+                      <input type="checkbox" [checked]="sub.done" (change)="toggleTask(sub)">
+                      <span>{{ sub.text }}</span>
+                      <button class="delete-btn" (click)="deleteTask(sub)"><i class="fas fa-trash"></i></button>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        @if (tasks().length > 0) {
+          <div class="progress-section">
+            <div class="progress-container large">
+              <div class="progress-bar" [style.width.%]="(doneCount() / tasks().length) * 100"></div>
+            </div>
+            <span>{{ doneCount() }}/{{ tasks().length }} terminees ({{ ((doneCount() / tasks().length) * 100).toFixed(0) }}%)</span>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- TAB: TIME -->
+    @if (tab() === 'time') {
+      <div class="card">
+        <h3><i class="fas fa-hourglass-half"></i> Estimation</h3>
+        <div class="meta-row">
+          <label>Temps estime</label>
+          <div class="input-suffix">
+            <input type="number" min="0" [(ngModel)]="ticket()!.time_estimated" (change)="updateTicket()">
+            <span>minutes</span>
+          </div>
+        </div>
+        <div class="time-display">
+          <div class="time-box">
+            <span class="time-label">Estime</span>
+            <span class="time-value">{{ formatMinutes(ticket()!.time_estimated || 0) }}</span>
+          </div>
+          <div class="time-box">
+            <span class="time-label">Passe</span>
+            <span class="time-value accent">{{ formatMinutes(ticket()!.time_spent || 0) }}</span>
+          </div>
+          <div class="time-box">
+            <span class="time-label">Restant</span>
+            <span class="time-value" [class.danger]="getRemaining() < 0">{{ formatMinutes(Math.abs(getRemaining())) }}</span>
+          </div>
+        </div>
+        @if (ticket()!.time_estimated) {
+          <div class="progress-section">
+            <div class="progress-container large">
+              <div class="progress-bar" [class.over]="getTimeProgress() > 100" [style.width.%]="Math.min(getTimeProgress(), 100)"></div>
+            </div>
+            <span>{{ getTimeProgress().toFixed(0) }}%</span>
+          </div>
+        }
+      </div>
+
+      <div class="card">
+        <h3><i class="fas fa-play-circle"></i> Timer</h3>
+        <div class="timer-display">
+          <span class="timer-value">{{ formatTimer() }}</span>
+        </div>
+        <div class="timer-controls">
+          <button class="btn" [class.active]="timerActive()" (click)="toggleTimer()">
+            <i class="fas" [class.fa-play]="!timerActive()" [class.fa-pause]="timerActive()"></i>
+            {{ timerActive() ? 'Pause' : 'Demarrer' }}
+          </button>
+          <button class="btn success" (click)="saveTimer()" [disabled]="timerSeconds() === 0">
+            <i class="fas fa-save"></i> Sauvegarder
+          </button>
+          <button class="btn-secondary" (click)="resetTimer()">
+            <i class="fas fa-redo"></i> Reset
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3><i class="fas fa-plus-circle"></i> Ajouter manuellement</h3>
+        <div class="form-row">
+          <input type="number" min="0" [(ngModel)]="addMinutes" placeholder="Minutes...">
+          <button class="btn" (click)="addTimeManually()"><i class="fas fa-plus"></i> Ajouter</button>
+        </div>
+      </div>
+    }
+
+    <!-- TAB: FILES -->
+    @if (tab() === 'files') {
+      <div class="card">
+        <div class="upload-area" (click)="triggerUpload()" (dragover)="onDragOver($event)" (drop)="onDropFile($event)">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <p>Cliquez ou deposez des fichiers ici</p>
+        </div>
+        <input type="file" #fileInput style="display:none" (change)="uploadFile($event)">
+
+        <div class="attachments-list">
+          @for (attachment of attachments(); track attachment.id) {
+            <div class="attachment-item">
+              <i class="fas" [class]="getFileIcon(attachment.mimetype)"></i>
+              <div class="attachment-info">
+                <a [href]="getAttachmentUrl(attachment)" target="_blank">{{ attachment.original_name }}</a>
+                <span class="attachment-meta">{{ formatFileSize(attachment.size) }} - {{ formatDateTime(attachment.created_at) }}</span>
+              </div>
+              <button class="delete-btn" (click)="deleteAttachment(attachment)"><i class="fas fa-trash"></i></button>
+            </div>
+          }
+          @if (attachments().length === 0) {
+            <div class="no-items">Aucune piece jointe</div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- TAB: ACTIVITY -->
+    @if (tab() === 'activity') {
+      <div class="card">
+        <div class="activity-timeline">
+          @for (activity of activities(); track activity.id) {
+            <div class="activity-item">
+              <div class="activity-icon">
+                <i class="fas" [class]="getActivityIcon(activity.action)"></i>
+              </div>
+              <div class="activity-content">
+                <span class="activity-text">{{ getActivityText(activity) }}</span>
+                <span class="activity-date">{{ formatDateTime(activity.created_at) }}</span>
+              </div>
+            </div>
+          }
+          @if (activities().length === 0) {
+            <div class="no-items">Aucune activite</div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- DELETE CONFIRMATION MODAL -->
+  @if (showDeleteModal()) {
+    <div class="confirm-overlay" (click)="closeDeleteModal()">
+      <div class="confirm-modal" (click)="$event.stopPropagation()">
+        <div class="confirm-icon"><i class="fas fa-exclamation-triangle"></i></div>
+        <h3>Confirmer la suppression</h3>
+        <p>Supprimer "{{ ticket()!.title }}" ?</p>
+        <p class="confirm-warning">Cette action est irreversible.</p>
+        <div class="confirm-actions">
+          <button class="btn-cancel" (click)="closeDeleteModal()">Annuler</button>
+          <button class="btn-danger" (click)="confirmDelete()">
+            <i class="fas fa-trash"></i> Supprimer
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+} @else {
+  <div class="loading">
+    <i class="fas fa-spinner fa-spin"></i>
+    <p>Chargement...</p>
+  </div>
+}

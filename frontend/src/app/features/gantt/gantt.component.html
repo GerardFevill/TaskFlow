@@ -1,0 +1,53 @@
+<div class="page-header">
+  <i class="fas fa-bars-staggered"></i>
+  <h2>Vue Gantt</h2>
+</div>
+
+<div class="gantt-container">
+  <div class="gantt-header">
+    <div class="gantt-title-col">Ticket</div>
+    <div class="gantt-timeline">
+      @for (day of days(); track day.date) {
+        <div class="gantt-day" [class.today]="isToday(day.date)" [class.weekend]="isWeekend(day.date)">
+          <span class="day-name">{{ day.dayName }}</span>
+          <span class="day-num">{{ day.num }}</span>
+        </div>
+      }
+    </div>
+  </div>
+  <div class="gantt-body">
+    @for (item of ganttData(); track item.id) {
+      <div class="gantt-row" (click)="openTicket(item.id)">
+        <div class="gantt-title-col">
+          <span class="priority" [class]="item.priority"><i class="fas fa-circle"></i></span>
+          <span class="ticket-title">{{ item.title }}</span>
+          <span class="status-badge" [class]="item.status">{{ formatStatus(item.status) }}</span>
+        </div>
+        <div class="gantt-timeline">
+          <div class="gantt-bar"
+               [class]="item.status"
+               [style.left.%]="getBarLeft(item)"
+               [style.width.%]="getBarWidth(item)"
+               [title]="getBarTooltip(item)">
+            @if (item.time_spent && item.time_estimated) {
+              <div class="bar-progress" [style.width.%]="(item.time_spent / item.time_estimated) * 100"></div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+    @if (ganttData().length === 0) {
+      <div class="empty-state">
+        <i class="fas fa-project-diagram"></i>
+        <h3>Aucun ticket planifie</h3>
+        <p>Ajoutez des dates de debut et fin a vos tickets</p>
+      </div>
+    }
+  </div>
+</div>
+
+<div class="legend">
+  <span class="legend-item"><span class="dot todo"></span> A faire</span>
+  <span class="legend-item"><span class="dot in_progress"></span> En cours</span>
+  <span class="legend-item"><span class="dot done"></span> Termine</span>
+</div>

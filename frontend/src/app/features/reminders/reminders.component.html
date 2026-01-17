@@ -1,0 +1,67 @@
+    <div class="page-header">
+      <i class="fas fa-bell"></i>
+      <h2>Rappels</h2>
+    </div>
+
+    <div class="reminders-sections">
+      <div class="card urgent">
+        <h3><i class="fas fa-exclamation-circle"></i> En retard</h3>
+        <div class="reminders-list">
+          @for (ticket of overdueTickets(); track ticket.id) {
+            <div class="reminder-item overdue" (click)="openTicket(ticket)">
+              <span class="priority" [class]="ticket.priority"><i class="fas fa-circle"></i></span>
+              <span class="title">{{ ticket.title }}</span>
+              <span class="due-badge overdue">
+                <i class="fas fa-clock"></i> {{ formatDate(ticket.due_date!) }}
+              </span>
+              <span class="days-badge danger">{{ getDaysOverdue(ticket) }} jours</span>
+            </div>
+          }
+          @if (overdueTickets().length === 0) {
+            <div class="no-items success">
+              <i class="fas fa-check-circle"></i> Aucun ticket en retard
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="card warning">
+        <h3><i class="fas fa-clock"></i> A venir (7 jours)</h3>
+        <div class="reminders-list">
+          @for (ticket of upcomingTickets(); track ticket.id) {
+            <div class="reminder-item" (click)="openTicket(ticket)">
+              <span class="priority" [class]="ticket.priority"><i class="fas fa-circle"></i></span>
+              <span class="title">{{ ticket.title }}</span>
+              <span class="due-badge">
+                <i class="fas fa-calendar"></i> {{ formatDate(ticket.due_date!) }}
+              </span>
+              <span class="days-badge warning">{{ getDaysUntil(ticket) }} jours</span>
+            </div>
+          }
+          @if (upcomingTickets().length === 0) {
+            <div class="no-items">Aucune echeance dans les 7 prochains jours</div>
+          }
+        </div>
+      </div>
+
+      <div class="card">
+        <h3><i class="fas fa-bell"></i> Rappels configures</h3>
+        <div class="reminders-list">
+          @for (ticket of reminders(); track ticket.id) {
+            <div class="reminder-item" (click)="openTicket(ticket)">
+              <span class="priority" [class]="ticket.priority"><i class="fas fa-circle"></i></span>
+              <span class="title">{{ ticket.title }}</span>
+              <span class="due-badge">
+                <i class="fas fa-calendar"></i> {{ formatDate(ticket.due_date!) }}
+              </span>
+              <span class="reminder-badge">
+                <i class="fas fa-bell"></i> {{ ticket.reminder_days }} jours avant
+              </span>
+            </div>
+          }
+          @if (reminders().length === 0) {
+            <div class="no-items">Aucun rappel configure</div>
+          }
+        </div>
+      </div>
+    </div>

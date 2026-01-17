@@ -1,0 +1,409 @@
+<div class="page-header">
+  <i class="fas fa-columns"></i>
+  <h2>Kanban</h2>
+  <button class="select-mode-btn" [class.active]="selectMode()" (click)="toggleSelectMode()">
+    <i class="fas" [class.fa-check-square]="selectMode()" [class.fa-square]="!selectMode()"></i>
+    {{ selectMode() ? 'Annuler' : 'Selectionner' }}
+  </button>
+</div>
+
+<!-- BULK ACTIONS BAR -->
+@if (selectedTickets().length > 0) {
+  <div class="bulk-actions">
+    <span class="selected-count">
+      <i class="fas fa-check-circle"></i>
+      {{ selectedTickets().length }} selectionne(s)
+    </span>
+    <div class="bulk-buttons">
+      <button class="bulk-btn edit" (click)="openBulkEditModal()">
+        <i class="fas fa-edit"></i> Modifier
+      </button>
+      <button class="bulk-btn" (click)="bulkSetStatus('todo')">
+        <i class="fas fa-clipboard-list"></i> A faire
+      </button>
+      <button class="bulk-btn" (click)="bulkSetStatus('in_progress')">
+        <i class="fas fa-spinner"></i> En cours
+      </button>
+      <button class="bulk-btn" (click)="bulkSetStatus('done')">
+        <i class="fas fa-check"></i> Termine
+      </button>
+      <button class="bulk-btn archive" (click)="bulkArchive()">
+        <i class="fas fa-archive"></i> Archiver
+      </button>
+      <button class="bulk-btn danger" (click)="bulkDelete()">
+        <i class="fas fa-trash"></i> Supprimer
+      </button>
+    </div>
+    <button class="bulk-clear" (click)="clearSelection()">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+}
+
+<!-- FILTRES PRIORITE -->
+<div class="filters">
+  <button class="filter-btn all" [class.active]="filter() === 'all'" (click)="filter.set('all')">
+    <i class="fas fa-layer-group"></i> TOUS ({{ activeTickets().length }})
+  </button>
+  <button class="filter-btn do" [class.active]="filter() === 'do'" (click)="filter.set('do')">
+    <i class="fas fa-fire"></i> FAIRE ({{ countByPriority('do') }})
+  </button>
+  <button class="filter-btn plan" [class.active]="filter() === 'plan'" (click)="filter.set('plan')">
+    <i class="fas fa-calendar-check"></i> PLANIFIER ({{ countByPriority('plan') }})
+  </button>
+  <button class="filter-btn delegate" [class.active]="filter() === 'delegate'" (click)="filter.set('delegate')">
+    <i class="fas fa-user-friends"></i> DELEGUER ({{ countByPriority('delegate') }})
+  </button>
+  <button class="filter-btn eliminate" [class.active]="filter() === 'eliminate'" (click)="filter.set('eliminate')">
+    <i class="fas fa-trash-alt"></i> ELIMINER ({{ countByPriority('eliminate') }})
+  </button>
+
+  <!-- LABEL FILTER (Multi-select) -->
+  <div class="label-filter">
+    <button class="label-filter-btn" (click)="toggleLabelDropdown()">
+      <i class="fas fa-tags"></i>
+      @if (labelFilter().length > 0) {
+        <span class="label-count">{{ labelFilter().length }}</span>
+      } @else {
+        <span>Labels</span>
+      }
+      <i class="fas fa-chevron-down"></i>
+    </button>
+    @if (labelDropdownOpen()) {
+      <div class="label-dropdown">
+        <div class="label-option" (click)="clearLabelFilter()">
+          <i class="fas fa-times"></i> Effacer filtres
+        </div>
+        @for (label of labels(); track label.id) {
+          <div class="label-option" [class.selected]="isLabelSelected(label.name)" (click)="toggleLabelFilter(label.name)">
+            <span class="label-check">
+              @if (isLabelSelected(label.name)) {
+                <i class="fas fa-check"></i>
+              }
+            </span>
+            <span class="label-dot" [style.background]="label.color"></span>
+            {{ label.name }}
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- SORT -->
+  <div class="sort-filter">
+    <button class="sort-btn" (click)="toggleSortDropdown()">
+      <i class="fas fa-sort"></i>
+      <span>{{ getSortLabel() }}</span>
+      <i class="fas fa-chevron-down"></i>
+    </button>
+    @if (sortDropdownOpen()) {
+      <div class="sort-dropdown">
+        <div class="sort-option" [class.active]="sortBy() === 'default'" (click)="setSortBy('default')">
+          <i class="fas fa-grip-lines"></i> Par defaut
+        </div>
+        <div class="sort-option" [class.active]="sortBy() === 'date-asc'" (click)="setSortBy('date-asc')">
+          <i class="fas fa-calendar-alt"></i> Date (ancien)
+        </div>
+        <div class="sort-option" [class.active]="sortBy() === 'date-desc'" (click)="setSortBy('date-desc')">
+          <i class="fas fa-calendar-alt"></i> Date (recent)
+        </div>
+        <div class="sort-option" [class.active]="sortBy() === 'priority'" (click)="setSortBy('priority')">
+          <i class="fas fa-exclamation"></i> Priorite
+        </div>
+        <div class="sort-option" [class.active]="sortBy() === 'name'" (click)="setSortBy('name')">
+          <i class="fas fa-font"></i> Nom (A-Z)
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- EPIC FILTER -->
+  <div class="planning-filter">
+    <button class="planning-filter-btn" (click)="toggleEpicDropdown()">
+      <i class="fas fa-flag"></i>
+      <span>{{ getEpicFilterLabel() }}</span>
+      <i class="fas fa-chevron-down"></i>
+    </button>
+    @if (epicDropdownOpen()) {
+      <div class="planning-dropdown">
+        <div class="planning-option" [class.active]="!epicFilter()" (click)="setEpicFilter(null)">
+          <i class="fas fa-layer-group"></i> Tous les epics
+        </div>
+        @for (epic of epics(); track epic.id) {
+          <div class="planning-option" [class.active]="epicFilter() === epic.id" (click)="setEpicFilter(epic.id)">
+            <span class="color-dot" [style.background]="epic.color"></span>
+            {{ epic.name }}
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- SPRINT FILTER -->
+  <div class="planning-filter">
+    <button class="planning-filter-btn" (click)="toggleSprintDropdown()">
+      <i class="fas fa-rocket"></i>
+      <span>{{ getSprintFilterLabel() }}</span>
+      <i class="fas fa-chevron-down"></i>
+    </button>
+    @if (sprintDropdownOpen()) {
+      <div class="planning-dropdown">
+        <div class="planning-option" [class.active]="!sprintFilter()" (click)="setSprintFilter(null)">
+          <i class="fas fa-layer-group"></i> Tous les sprints
+        </div>
+        @for (sprint of sprints(); track sprint.id) {
+          <div class="planning-option" [class.active]="sprintFilter() === sprint.id" (click)="setSprintFilter(sprint.id)">
+            <span class="status-dot" [class]="sprint.status"></span>
+            {{ sprint.name }}
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- MILESTONE FILTER -->
+  <div class="planning-filter">
+    <button class="planning-filter-btn" (click)="toggleMilestoneDropdown()">
+      <i class="fas fa-map-pin"></i>
+      <span>{{ getMilestoneFilterLabel() }}</span>
+      <i class="fas fa-chevron-down"></i>
+    </button>
+    @if (milestoneDropdownOpen()) {
+      <div class="planning-dropdown">
+        <div class="planning-option" [class.active]="!milestoneFilter()" (click)="setMilestoneFilter(null)">
+          <i class="fas fa-layer-group"></i> Tous les jalons
+        </div>
+        @for (milestone of milestones(); track milestone.id) {
+          <div class="planning-option" [class.active]="milestoneFilter() === milestone.id" (click)="setMilestoneFilter(milestone.id)">
+            <span class="status-dot" [class]="milestone.status"></span>
+            {{ milestone.name }}
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
+
+<!-- NOUVEAU TICKET -->
+<div class="form-row">
+  <i class="fas fa-plus-circle"></i>
+  <input #ticketInput [(ngModel)]="newTicket" placeholder="Nouveau ticket... (N)" (keyup.enter)="addTicket()">
+  <select [(ngModel)]="newPriority">
+    <option value="do">Faire</option>
+    <option value="plan">Planifier</option>
+    <option value="delegate">Deleguer</option>
+    <option value="eliminate">Eliminer</option>
+  </select>
+  <button class="btn" (click)="addTicket()"><i class="fas fa-plus"></i> Ticket</button>
+</div>
+
+<!-- KANBAN -->
+<div class="kanban">
+  @for (column of columns; track column.status) {
+    <div class="kanban-column" [class]="column.status"
+         (dragover)="onDragOver($event)"
+         (drop)="onDrop($event, column.status)">
+      <h3>
+        <i class="fas" [class]="column.icon"></i>
+        {{ column.title }} ({{ ticketsByStatus(column.status).length }})
+        @if (selectMode()) {
+          <button class="select-all-col" (click)="selectAllInColumn(column.status)">
+            <i class="fas fa-check-double"></i>
+          </button>
+        }
+      </h3>
+      <div class="kanban-cards">
+        @if (loading()) {
+          <div class="skeleton-card">
+            <div class="skeleton skeleton-title"></div>
+            <div class="skeleton skeleton-progress"></div>
+            <div class="skeleton-meta">
+              <div class="skeleton skeleton-badge"></div>
+              <div class="skeleton skeleton-badge"></div>
+            </div>
+          </div>
+          <div class="skeleton-card">
+            <div class="skeleton skeleton-title"></div>
+            <div class="skeleton-meta">
+              <div class="skeleton skeleton-badge"></div>
+            </div>
+          </div>
+        }
+        @for (ticket of ticketsByStatus(column.status); track ticket.id) {
+          <div class="kanban-card"
+               [class.selected]="isSelected(ticket)"
+               [class.dragging]="draggedTicket()?.id === ticket.id"
+               [class.archived]="ticket.archived"
+               [class.overdue]="isOverdue(ticket)"
+               [class.keyboard-focus]="focusedTicketId() === ticket.id"
+               [draggable]="!selectMode()"
+               (dragstart)="onDragStart($event, ticket)"
+               (dragend)="onDragEnd()"
+               (click)="onCardClick(ticket, $event)">
+            @if (selectMode()) {
+              <div class="checkbox" [class.checked]="isSelected(ticket)">
+                <i class="fas" [class.fa-check-square]="isSelected(ticket)" [class.fa-square]="!isSelected(ticket)"></i>
+              </div>
+            }
+            <div class="card-content">
+              <div class="card-header">
+                <span class="priority" [class]="ticket.priority" (click)="cyclePriority(ticket, $event)"><i class="fas fa-circle"></i></span>
+                @if (editingTicketId() === ticket.id) {
+                  <input class="quick-edit-input" [(ngModel)]="editTitle" (blur)="saveQuickEdit(ticket)" (keyup.enter)="saveQuickEdit(ticket)" (keyup.escape)="cancelQuickEdit()">
+                } @else {
+                  <span class="title" (dblclick)="startQuickEdit(ticket, $event)">{{ ticket.title }}</span>
+                }
+                @if (!selectMode() && editingTicketId() !== ticket.id) {
+                  <button class="pin-btn-mini" [class.pinned]="ticket.pinned" (click)="toggleTicketPin(ticket, $event)" title="Epingler">
+                    <i class="fas" [class.fa-star]="ticket.pinned" [class.fa-star-o]="!ticket.pinned"></i>
+                  </button>
+                  <button class="delete-btn" (click)="deleteTicket(ticket, $event)">
+                    <i class="fas fa-times"></i>
+                  </button>
+                }
+              </div>
+              @if (ticket.task_count) {
+                <div class="progress-container">
+                  <div class="progress-bar" [style.width.%]="getProgress(ticket)"></div>
+                </div>
+                <span class="task-count"><i class="fas fa-tasks"></i> {{ ticket.task_done }}/{{ ticket.task_count }}</span>
+              }
+              <div class="card-meta">
+                @if (ticket.recurrence && ticket.recurrence !== 'none') {
+                  <span class="recurrence-badge"><i class="fas fa-sync"></i> {{ ticket.recurrence }}</span>
+                }
+                @if (ticket.time_spent) {
+                  <span class="time-badge"><i class="fas fa-stopwatch"></i> {{ formatMinutes(ticket.time_spent) }}</span>
+                }
+                @if (ticket.due_date) {
+                  <span class="due-badge" [class.overdue]="isOverdue(ticket)">
+                    <i class="fas fa-clock"></i> {{ formatDate(ticket.due_date) }}
+                  </span>
+                }
+                @for (label of ticket.labels; track label.id) {
+                  <span class="label-badge" [style.background]="label.color">{{ label.name }}</span>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
+
+<!-- CONFIRM MODAL -->
+@if (showConfirmModal()) {
+  <div class="confirm-overlay" (click)="closeConfirmModal()">
+    <div class="confirm-modal" (click)="$event.stopPropagation()">
+      <div class="confirm-icon"><i class="fas fa-exclamation-triangle"></i></div>
+      <h3>Confirmer la suppression</h3>
+      @if (confirmAction() === 'bulk') {
+        <p>Supprimer {{ selectedTickets().length }} ticket(s) ?</p>
+      } @else {
+        <p>Supprimer "{{ ticketToDelete()?.title }}" ?</p>
+      }
+      <p class="confirm-warning">Cette action est irreversible.</p>
+      <div class="confirm-actions">
+        <button class="btn-cancel" (click)="closeConfirmModal()">Annuler</button>
+        <button class="btn-danger" (click)="confirmDelete()">
+          <i class="fas fa-trash"></i> Supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- BULK EDIT MODAL -->
+@if (showBulkEditModal()) {
+  <div class="modal-overlay" (click)="closeBulkEditModal()">
+    <div class="bulk-edit-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3><i class="fas fa-edit"></i> Modifier {{ selectedTickets().length }} ticket(s)</h3>
+        <button (click)="closeBulkEditModal()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="bulk-edit-section">
+          <label><i class="fas fa-flag"></i> Priorite</label>
+          <div class="priority-options">
+            <button class="priority-opt do" [class.active]="bulkEditData.priority === 'do'" (click)="bulkEditData.priority = 'do'">
+              <i class="fas fa-fire"></i> Faire
+            </button>
+            <button class="priority-opt plan" [class.active]="bulkEditData.priority === 'plan'" (click)="bulkEditData.priority = 'plan'">
+              <i class="fas fa-calendar"></i> Planifier
+            </button>
+            <button class="priority-opt delegate" [class.active]="bulkEditData.priority === 'delegate'" (click)="bulkEditData.priority = 'delegate'">
+              <i class="fas fa-users"></i> Deleguer
+            </button>
+            <button class="priority-opt eliminate" [class.active]="bulkEditData.priority === 'eliminate'" (click)="bulkEditData.priority = 'eliminate'">
+              <i class="fas fa-times"></i> Eliminer
+            </button>
+            <button class="priority-opt none" [class.active]="!bulkEditData.priority" (click)="bulkEditData.priority = ''">
+              <i class="fas fa-minus"></i> Ne pas modifier
+            </button>
+          </div>
+        </div>
+
+        <div class="bulk-edit-section">
+          <label><i class="fas fa-folder"></i> Projet</label>
+          <select [(ngModel)]="bulkEditData.project_id">
+            <option [value]="null">-- Ne pas modifier --</option>
+            @for (project of projects(); track project.id) {
+              <option [value]="project.id">{{ project.name }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="bulk-edit-section">
+          <label><i class="fas fa-tags"></i> Ajouter des labels</label>
+          <div class="label-checkboxes">
+            @for (label of labels(); track label.id) {
+              <label class="label-checkbox" [style.borderColor]="label.color">
+                <input type="checkbox" [checked]="bulkEditData.addLabels.includes(label.id)" (change)="toggleBulkLabel(label.id)">
+                <span class="label-dot" [style.background]="label.color"></span>
+                {{ label.name }}
+              </label>
+            }
+          </div>
+        </div>
+
+        <div class="bulk-edit-section">
+          <label><i class="fas fa-calendar-alt"></i> Date d'echeance</label>
+          <input type="date" [(ngModel)]="bulkEditData.due_date">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeBulkEditModal()">Annuler</button>
+        <button class="btn-primary" (click)="applyBulkEdit()">
+          <i class="fas fa-check"></i> Appliquer
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- KEYBOARD SHORTCUTS HELP -->
+@if (showShortcuts()) {
+  <div class="shortcuts-overlay" (click)="showShortcuts.set(false)">
+    <div class="shortcuts-modal" (click)="$event.stopPropagation()">
+      <div class="shortcuts-header">
+        <h3><i class="fas fa-keyboard"></i> Raccourcis clavier</h3>
+        <button (click)="showShortcuts.set(false)"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="shortcuts-list">
+        <div class="shortcut"><kbd>N</kbd> Nouveau ticket</div>
+        <div class="shortcut"><kbd>S</kbd> Mode selection</div>
+        <div class="shortcut"><kbd>J/↓</kbd> Ticket suivant</div>
+        <div class="shortcut"><kbd>K/↑</kbd> Ticket precedent</div>
+        <div class="shortcut"><kbd>H/←</kbd> Colonne gauche</div>
+        <div class="shortcut"><kbd>→</kbd> Colonne droite</div>
+        <div class="shortcut"><kbd>Enter</kbd> Ouvrir ticket</div>
+        <div class="shortcut"><kbd>1-4</kbd> Filtre priorite</div>
+        <div class="shortcut"><kbd>0</kbd> Afficher tous</div>
+        <div class="shortcut"><kbd>L</kbd> Filtre labels</div>
+        <div class="shortcut"><kbd>?</kbd> Afficher aide</div>
+        <div class="shortcut"><kbd>Esc</kbd> Fermer / Annuler</div>
+      </div>
+    </div>
+  </div>
+}

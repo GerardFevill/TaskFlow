@@ -1,0 +1,51 @@
+<div class="velocity-container">
+  @if (loading()) {
+    <div class="loading">Chargement...</div>
+  } @else if (error()) {
+    <div class="error">{{ error() }}</div>
+  } @else if (data() && data()!.sprints.length > 0) {
+    <div class="chart-header">
+      <h4>Velocity Chart</h4>
+      <span class="average">
+        Moyenne: <strong>{{ data()!.averageVelocity }}</strong> tickets/sprint
+      </span>
+    </div>
+    <div class="chart-body">
+      <div class="y-axis">
+        @for (line of yAxisLabels(); track $index) {
+          <span class="y-label" [style.bottom.%]="line.percent">{{ line.value }}</span>
+        }
+      </div>
+      <div class="bars-container">
+        @for (sprint of data()!.sprints; track sprint.id) {
+          <div class="bar-wrapper">
+            <div
+              class="bar"
+              [style.height.%]="getBarHeight(sprint.velocity)"
+              [class.above-average]="sprint.velocity >= data()!.averageVelocity"
+            >
+              <span class="value">{{ sprint.velocity }}</span>
+            </div>
+            <span class="label" [title]="sprint.name">{{ getShortName(sprint.name) }}</span>
+          </div>
+        }
+        <!-- Average line -->
+        <div
+          class="average-line"
+          [style.bottom.%]="getBarHeight(data()!.averageVelocity)"
+        >
+          <span class="average-label">Moy.</span>
+        </div>
+      </div>
+    </div>
+    <div class="chart-footer">
+      <span class="total">{{ data()!.totalSprints }} sprints complétés</span>
+    </div>
+  } @else {
+    <div class="empty">
+      <i class="fas fa-chart-bar"></i>
+      <p>Aucun sprint complété</p>
+      <span>Les données apparaîtront après avoir terminé des sprints</span>
+    </div>
+  }
+</div>

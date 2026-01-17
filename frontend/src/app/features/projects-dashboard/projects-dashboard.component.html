@@ -1,0 +1,223 @@
+<div class="page-header">
+    <i class="fas fa-layer-group"></i>
+    <h2>Tableau de bord Projets</h2>
+    <button class="btn btn-secondary" (click)="manageProjects()">
+        <i class="fas fa-cog"></i> Gérer
+    </button>
+</div>
+
+<!-- Global Stats -->
+@if (loading()) {
+<div class="global-stats">
+    @for (i of [1,2,3,4]; track i) {
+    <div class="stat-card skeleton-stat">
+        <div class="skeleton" style="width: 48px; height: 48px; border-radius: 12px;"></div>
+        <div class="stat-info">
+            <div class="skeleton" style="width: 60px; height: 32px; margin-bottom: 4px;"></div>
+            <div class="skeleton" style="width: 90px; height: 14px;"></div>
+        </div>
+    </div>
+    }
+</div>
+} @else {
+<div class="global-stats">
+    <div class="stat-card accent">
+        <div class="stat-icon">
+            <i class="fas fa-folder-open"></i>
+        </div>
+        <div class="stat-info">
+            <span class="stat-value">{{ totalProjects() }}</span>
+            <span class="stat-label">Projets</span>
+        </div>
+    </div>
+    <div class="stat-card info">
+        <div class="stat-icon">
+            <i class="fas fa-tasks"></i>
+        </div>
+        <div class="stat-info">
+            <span class="stat-value">{{ totalTickets() }}</span>
+            <span class="stat-label">Tickets totaux</span>
+        </div>
+    </div>
+    <div class="stat-card warning">
+        <div class="stat-icon">
+            <i class="fas fa-spinner"></i>
+        </div>
+        <div class="stat-info">
+            <span class="stat-value">{{ totalInProgress() }}</span>
+            <span class="stat-label">En cours</span>
+        </div>
+    </div>
+    <div class="stat-card success">
+        <div class="stat-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-info">
+            <span class="stat-value">{{ globalProgress() }}%</span>
+            <span class="stat-label">Progression globale</span>
+        </div>
+    </div>
+</div>
+}
+
+<!-- Projects Overview Grid -->
+<div class="section-header">
+    <h3><i class="fas fa-chart-pie"></i> Vue d'ensemble des projets</h3>
+</div>
+
+@if (loading()) {
+<div class="projects-grid">
+    @for (i of [1,2,3,4,5,6]; track i) {
+    <div class="project-card skeleton-card">
+        <div class="skeleton" style="width: 100%; height: 120px;"></div>
+    </div>
+    }
+</div>
+} @else {
+<div class="projects-grid">
+    @for (project of projects(); track project.id) {
+    <div class="project-card" [class.completed]="getProgress(project) === 100" (click)="openProject(project)">
+        <div class="project-header">
+            <div class="project-icon" [style.background]="project.color + '20'" [style.color]="project.color">
+                <i class="fas" [class]="project.icon || 'fa-folder'"></i>
+            </div>
+            <div class="project-title">
+                <h4>{{ project.name }}</h4>
+                @if (project.description) {
+                <p class="project-desc">{{ project.description }}</p>
+                }
+            </div>
+        </div>
+
+        <div class="project-stats">
+            <div class="stat">
+                <span class="value">{{ getTicketCount(project) }}</span>
+                <span class="label">Tickets</span>
+            </div>
+            <div class="stat todo">
+                <span class="value">{{ getTicketTodo(project) }}</span>
+                <span class="label">À faire</span>
+            </div>
+            <div class="stat in-progress">
+                <span class="value">{{ getTicketInProgress(project) }}</span>
+                <span class="label">En cours</span>
+            </div>
+            <div class="stat done">
+                <span class="value">{{ getTicketDone(project) }}</span>
+                <span class="label">Terminé</span>
+            </div>
+        </div>
+
+        <div class="project-progress">
+            <div class="progress-header">
+                <span>Progression</span>
+                <span class="progress-value" [class]="getProgressClass(getProgress(project))">{{ getProgress(project)
+                    }}%</span>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" [style.width.%]="getProgress(project)" [style.background]="project.color"
+                    [class]="getProgressClass(getProgress(project))">
+                </div>
+            </div>
+        </div>
+
+        <div class="project-actions">
+            <button class="action-btn" (click)="openKanban(project); $event.stopPropagation()" title="Kanban">
+                <i class="fas fa-columns"></i>
+            </button>
+            <button class="action-btn" (click)="openWhiteboard(project); $event.stopPropagation()" title="Whiteboard">
+                <i class="fas fa-chalkboard"></i>
+            </button>
+            <button class="action-btn primary" (click)="openProject(project); $event.stopPropagation()" title="Ouvrir">
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+    }
+</div>
+}
+
+<!-- Two Column Layout for Lists -->
+<div class="dashboard-columns">
+    <!-- Most Active Projects -->
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-fire"></i> Projets les plus actifs</h3>
+            <span class="count accent">{{ mostActiveProjects().length }}</span>
+        </div>
+        <div class="project-list">
+            @for (project of mostActiveProjects(); track project.id) {
+            <div class="project-item" (click)="openProject(project)">
+                <div class="project-icon-small" [style.background]="project.color + '20'" [style.color]="project.color">
+                    <i class="fas" [class]="project.icon || 'fa-folder'"></i>
+                </div>
+                <div class="project-info">
+                    <span class="name">{{ project.name }}</span>
+                    <span class="meta">{{ getTicketInProgress(project) }} en cours</span>
+                </div>
+                <div class="mini-progress-container">
+                    <div class="mini-progress" [style.width.%]="getProgress(project)"
+                        [style.background]="project.color"></div>
+                </div>
+                <span class="progress-text">{{ getProgress(project) }}%</span>
+            </div>
+            }
+            @if (mostActiveProjects().length === 0) {
+            <div class="empty"><i class="fas fa-pause-circle"></i> Aucun projet actif</div>
+            }
+        </div>
+    </div>
+
+    <!-- Projects Needing Attention -->
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-exclamation-triangle"></i> Nécessitent attention</h3>
+            <span class="count warning">{{ needsAttention().length }}</span>
+        </div>
+        <div class="project-list">
+            @for (project of needsAttention(); track project.id) {
+            <div class="project-item" (click)="openProject(project)">
+                <div class="project-icon-small" [style.background]="project.color + '20'" [style.color]="project.color">
+                    <i class="fas" [class]="project.icon || 'fa-folder'"></i>
+                </div>
+                <div class="project-info">
+                    <span class="name">{{ project.name }}</span>
+                    <span class="meta warning">{{ getTicketCount(project) }} tickets, {{ getProgress(project) }}%
+                        fait</span>
+                </div>
+                <button class="action-btn-small" (click)="openKanban(project); $event.stopPropagation()">
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+            }
+            @if (needsAttention().length === 0) {
+            <div class="empty success"><i class="fas fa-check"></i> Tous les projets avancent bien</div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="summary-row">
+    <div class="summary-card active">
+        <div class="summary-icon"><i class="fas fa-play-circle"></i></div>
+        <div class="summary-info">
+            <span class="summary-value">{{ activeProjects().length }}</span>
+            <span class="summary-label">Projets actifs</span>
+        </div>
+    </div>
+    <div class="summary-card completed">
+        <div class="summary-icon"><i class="fas fa-trophy"></i></div>
+        <div class="summary-info">
+            <span class="summary-value">{{ completedProjects().length }}</span>
+            <span class="summary-label">Projets terminés</span>
+        </div>
+    </div>
+    <div class="summary-card empty-projects">
+        <div class="summary-icon"><i class="fas fa-folder"></i></div>
+        <div class="summary-info">
+            <span class="summary-value">{{ emptyProjects().length }}</span>
+            <span class="summary-label">Projets vides</span>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,294 @@
+<div class="whiteboard-container"
+     [class.tool-pan]="activeTool() === 'pan'"
+     [class.panning]="isPanning()"
+     [class.drawing]="isDrawing()"
+     (wheel)="onWheel($event)"
+     (mousedown)="onCanvasMouseDown($event)"
+     (mousemove)="onCanvasMouseMove($event)"
+     (mouseup)="onCanvasMouseUp($event)"
+     (mouseleave)="onCanvasMouseUp($event)"
+     #canvasContainer>
+
+  <!-- Grid Background -->
+  <div class="canvas-grid"
+       [style.backgroundSize]="gridSize() + 'px ' + gridSize() + 'px'"
+       [style.transform]="canvasTransform()"
+       [style.opacity]="board()?.grid_enabled ? 1 : 0">
+  </div>
+
+  <!-- SVG Layer for shapes -->
+  <svg class="canvas-svg" [style.transform]="canvasTransform()">
+    <defs>
+      <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="currentColor" />
+      </marker>
+    </defs>
+
+    <!-- Freehand paths -->
+    @for (elem of freehandElements(); track elem.id) {
+      <path
+        [attr.d]="elem.path_data"
+        [attr.stroke]="elem.stroke_color"
+        [attr.stroke-width]="elem.stroke_width"
+        fill="none"
+        [attr.opacity]="elem.opacity"
+        [class.selected]="selectedIds().includes(elem.id)"
+        (mousedown)="onElementMouseDown($event, elem)" />
+    }
+
+    <!-- Lines and arrows -->
+    @for (elem of lineElements(); track elem.id) {
+      <line
+        [attr.x1]="elem.x"
+        [attr.y1]="elem.y"
+        [attr.x2]="elem.x + elem.width"
+        [attr.y2]="elem.y + elem.height"
+        [attr.stroke]="elem.stroke_color"
+        [attr.stroke-width]="elem.stroke_width"
+        [attr.stroke-dasharray]="elem.line_style === 'dashed' ? '8,4' : elem.line_style === 'dotted' ? '2,2' : ''"
+        [attr.marker-end]="elem.end_arrow ? 'url(#arrowhead)' : ''"
+        [attr.opacity]="elem.opacity"
+        [class.selected]="selectedIds().includes(elem.id)"
+        (mousedown)="onElementMouseDown($event, elem)" />
+    }
+
+    <!-- Rectangles -->
+    @for (elem of rectElements(); track elem.id) {
+      <rect
+        [attr.x]="elem.x"
+        [attr.y]="elem.y"
+        [attr.width]="elem.width"
+        [attr.height]="elem.height"
+        [attr.fill]="elem.fill_color"
+        [attr.stroke]="elem.stroke_color"
+        [attr.stroke-width]="elem.stroke_width"
+        [attr.opacity]="elem.opacity"
+        [attr.rx]="4"
+        [class.selected]="selectedIds().includes(elem.id)"
+        (mousedown)="onElementMouseDown($event, elem)" />
+    }
+
+    <!-- Circles -->
+    @for (elem of circleElements(); track elem.id) {
+      <ellipse
+        [attr.cx]="elem.x + elem.width / 2"
+        [attr.cy]="elem.y + elem.height / 2"
+        [attr.rx]="elem.width / 2"
+        [attr.ry]="elem.height / 2"
+        [attr.fill]="elem.fill_color"
+        [attr.stroke]="elem.stroke_color"
+        [attr.stroke-width]="elem.stroke_width"
+        [attr.opacity]="elem.opacity"
+        [class.selected]="selectedIds().includes(elem.id)"
+        (mousedown)="onElementMouseDown($event, elem)" />
+    }
+
+    <!-- Triangles -->
+    @for (elem of triangleElements(); track elem.id) {
+      <polygon
+        [attr.points]="getTrianglePoints(elem)"
+        [attr.fill]="elem.fill_color"
+        [attr.stroke]="elem.stroke_color"
+        [attr.stroke-width]="elem.stroke_width"
+        [attr.opacity]="elem.opacity"
+        [class.selected]="selectedIds().includes(elem.id)"
+        (mousedown)="onElementMouseDown($event, elem)" />
+    }
+
+    <!-- Diamonds -->
+    @for (elem of diamondElements(); track elem.id) {
+      <polygon
+        [attr.points]="getDiamondPoints(elem)"
+        [attr.fill]="elem.fill_color"
+        [attr.stroke]="elem.stroke_color"
+        [attr.stroke-width]="elem.stroke_width"
+        [attr.opacity]="elem.opacity"
+        [class.selected]="selectedIds().includes(elem.id)"
+        (mousedown)="onElementMouseDown($event, elem)" />
+    }
+
+    <!-- Selection box -->
+    @if (selectionBox()) {
+      <rect
+        [attr.x]="selectionBox()!.x"
+        [attr.y]="selectionBox()!.y"
+        [attr.width]="selectionBox()!.width"
+        [attr.height]="selectionBox()!.height"
+        class="selection-marquee" />
+    }
+
+    <!-- Resize handles for selected elements -->
+    @if (selectedIds().length === 1 && !isDragging() && !isResizing()) {
+      @for (handle of resizeHandles; track handle) {
+        <rect
+          [attr.x]="getHandlePosition(handle).x - 5"
+          [attr.y]="getHandlePosition(handle).y - 5"
+          width="10" height="10"
+          class="resize-handle"
+          [class]="'handle-' + handle"
+          (mousedown)="onResizeStart($event, handle)" />
+      }
+    }
+  </svg>
+
+  <!-- HTML Layer for sticky notes, text, images -->
+  <div class="canvas-html" [style.transform]="canvasTransform()">
+    @for (elem of stickyElements(); track elem.id) {
+      <div
+        class="sticky-note"
+        [class.selected]="selectedIds().includes(elem.id)"
+        [style.left.px]="elem.x"
+        [style.top.px]="elem.y"
+        [style.width.px]="elem.width"
+        [style.height.px]="elem.height"
+        [style.backgroundColor]="elem.fill_color"
+        [style.transform]="'rotate(' + elem.rotation + 'deg)'"
+        (mousedown)="onElementMouseDown($event, elem)"
+        (dblclick)="onElementDblClick(elem)">
+        @if (editingId() === elem.id) {
+          <textarea
+            class="sticky-content editing"
+            [value]="elem.text_content || ''"
+            (blur)="onTextBlur($event, elem)"
+            (keydown.escape)="cancelEditing()"
+            (keydown.control.enter)="onTextBlur($event, elem)"
+            #textInput></textarea>
+        } @else {
+          <div class="sticky-content">{{ elem.text_content }}</div>
+        }
+      </div>
+    }
+
+    @for (elem of textElements(); track elem.id) {
+      <div
+        class="text-element"
+        [class.selected]="selectedIds().includes(elem.id)"
+        [style.left.px]="elem.x"
+        [style.top.px]="elem.y"
+        [style.width.px]="elem.width"
+        [style.fontSize.px]="elem.font_size"
+        [style.fontFamily]="elem.font_family"
+        [style.textAlign]="elem.text_align"
+        [style.color]="elem.fill_color"
+        (mousedown)="onElementMouseDown($event, elem)"
+        (dblclick)="onElementDblClick(elem)">
+        @if (editingId() === elem.id) {
+          <input
+            type="text"
+            class="text-input editing"
+            [value]="elem.text_content || ''"
+            (blur)="onTextBlur($event, elem)"
+            (keydown.escape)="cancelEditing()"
+            (keydown.enter)="onTextBlur($event, elem)"
+            #textInput />
+        } @else {
+          {{ elem.text_content || 'Double-click to edit' }}
+        }
+      </div>
+    }
+
+    @for (elem of imageElements(); track elem.id) {
+      <div
+        class="image-element"
+        [class.selected]="selectedIds().includes(elem.id)"
+        [style.left.px]="elem.x"
+        [style.top.px]="elem.y"
+        [style.width.px]="elem.width"
+        [style.height.px]="elem.height"
+        (mousedown)="onElementMouseDown($event, elem)">
+        <img [src]="getImageUrl(elem)" [alt]="elem.image_filename || 'Image'" />
+      </div>
+    }
+
+    <!-- Drawing preview -->
+    @if (isDrawing() && drawingPath()) {
+      <svg class="drawing-preview" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
+        <path [attr.d]="drawingPath()" stroke="#6c5ce7" stroke-width="2" fill="none" />
+      </svg>
+    }
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button class="tool-btn" [class.active]="activeTool() === 'select'" (click)="setTool('select')" title="Select (V)">
+      <i class="fas fa-mouse-pointer"></i>
+    </button>
+    <button class="tool-btn" [class.active]="activeTool() === 'pan'" (click)="setTool('pan')" title="Pan (H)">
+      <i class="fas fa-hand-paper"></i>
+    </button>
+    <div class="toolbar-divider"></div>
+    <button class="tool-btn" [class.active]="activeTool() === 'sticky_note'" (click)="setTool('sticky_note')" title="Sticky Note (N)">
+      <i class="fas fa-sticky-note"></i>
+    </button>
+    <button class="tool-btn" [class.active]="activeTool() === 'text'" (click)="setTool('text')" title="Text (T)">
+      <i class="fas fa-font"></i>
+    </button>
+    <div class="toolbar-divider"></div>
+    <button class="tool-btn" [class.active]="activeTool() === 'rectangle'" (click)="setTool('rectangle')" title="Rectangle (R)">
+      <i class="fas fa-square"></i>
+    </button>
+    <button class="tool-btn" [class.active]="activeTool() === 'circle'" (click)="setTool('circle')" title="Circle (O)">
+      <i class="fas fa-circle"></i>
+    </button>
+    <button class="tool-btn" [class.active]="activeTool() === 'triangle'" (click)="setTool('triangle')" title="Triangle">
+      <i class="fas fa-play" style="transform: rotate(-90deg)"></i>
+    </button>
+    <button class="tool-btn" [class.active]="activeTool() === 'diamond'" (click)="setTool('diamond')" title="Diamond">
+      <i class="fas fa-square" style="transform: rotate(45deg) scale(0.7)"></i>
+    </button>
+    <div class="toolbar-divider"></div>
+    <button class="tool-btn" [class.active]="activeTool() === 'line'" (click)="setTool('line')" title="Line (L)">
+      <i class="fas fa-minus" style="transform: rotate(-45deg)"></i>
+    </button>
+    <button class="tool-btn" [class.active]="activeTool() === 'arrow'" (click)="setTool('arrow')" title="Arrow (A)">
+      <i class="fas fa-long-arrow-alt-right" style="transform: rotate(-45deg)"></i>
+    </button>
+    <button class="tool-btn" [class.active]="activeTool() === 'freehand'" (click)="setTool('freehand')" title="Draw (P)">
+      <i class="fas fa-pencil-alt"></i>
+    </button>
+    <div class="toolbar-divider"></div>
+    <button class="tool-btn" (click)="triggerImageUpload()" title="Image">
+      <i class="fas fa-image"></i>
+    </button>
+    <input type="file" accept="image/*" (change)="onImageUpload($event)" #imageInput style="display: none" />
+  </div>
+
+  <!-- Color Picker (shown when element selected or drawing tool active) -->
+  @if (showColorPicker()) {
+    <div class="color-picker">
+      <div class="color-section">
+        <span class="color-label">Fill</span>
+        <div class="color-grid">
+          @for (color of availableColors(); track color) {
+            <button
+              class="color-btn"
+              [style.backgroundColor]="color"
+              [class.active]="currentFillColor() === color"
+              (click)="setFillColor(color)">
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Zoom Controls -->
+  <div class="zoom-controls">
+    <button class="zoom-btn" (click)="zoomOut()" title="Zoom Out">
+      <i class="fas fa-minus"></i>
+    </button>
+    <span class="zoom-label">{{ (zoom() * 100) | number:'1.0-0' }}%</span>
+    <button class="zoom-btn" (click)="zoomIn()" title="Zoom In">
+      <i class="fas fa-plus"></i>
+    </button>
+    <button class="zoom-btn" (click)="resetZoom()" title="Reset">
+      <i class="fas fa-compress-arrows-alt"></i>
+    </button>
+  </div>
+
+  <!-- Back button -->
+  <button class="back-btn" (click)="goBack()" title="Back to project">
+    <i class="fas fa-arrow-left"></i>
+    <span>{{ projectName() }}</span>
+  </button>
+</div>

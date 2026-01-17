@@ -1,0 +1,135 @@
+<div class="page-header">
+  <i class="fas fa-clone"></i>
+  <h2>Templates</h2>
+  <button class="btn primary" (click)="openCreateModal()">
+    <i class="fas fa-plus"></i> Nouveau Template
+  </button>
+</div>
+
+@if (templates().length === 0) {
+  <div class="empty-state">
+    <i class="fas fa-clone"></i>
+    <h3>Aucun template</h3>
+    <p>Creez des templates pour accelerer la creation de tickets recurrents.</p>
+    <button class="btn primary" (click)="openCreateModal()">
+      <i class="fas fa-plus"></i> Creer un template
+    </button>
+  </div>
+} @else {
+  <div class="templates-grid">
+    @for (template of templates(); track template.id) {
+      <div class="template-card">
+        <div class="template-header">
+          <span class="priority-dot" [class]="template.priority"></span>
+          <h3>{{ template.name }}</h3>
+          <button class="delete-btn" (click)="deleteTemplate(template)" title="Supprimer">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+        <div class="template-preview">
+          <strong>{{ template.title }}</strong>
+          @if (template.description) {
+            <p>{{ template.description | slice:0:100 }}{{ template.description.length > 100 ? '...' : '' }}</p>
+          }
+        </div>
+        <div class="template-meta">
+          <span class="priority-badge" [class]="template.priority">{{ formatPriority(template.priority) }}</span>
+          @if (template.project_name) {
+            <span class="project-badge" [style.background]="template.project_color">
+              <i class="fas fa-folder"></i> {{ template.project_name }}
+            </span>
+          }
+        </div>
+        <div class="template-actions">
+          <button class="btn primary" (click)="useTemplate(template)">
+            <i class="fas fa-plus"></i> Utiliser
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+}
+
+<!-- CREATE MODAL -->
+@if (showCreateModal()) {
+  <div class="modal-overlay" (click)="closeCreateModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3><i class="fas fa-clone"></i> Nouveau Template</h3>
+        <button (click)="closeCreateModal()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nom du template</label>
+          <input type="text" [(ngModel)]="newTemplate.name" placeholder="Ex: Bug report, Feature request...">
+        </div>
+        <div class="form-group">
+          <label>Titre du ticket</label>
+          <input type="text" [(ngModel)]="newTemplate.title" placeholder="Titre par defaut">
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea [(ngModel)]="newTemplate.description" rows="4" placeholder="Description par defaut..."></textarea>
+        </div>
+        <div class="form-row-inline">
+          <div class="form-group">
+            <label>Priorite</label>
+            <select [(ngModel)]="newTemplate.priority">
+              <option value="do">Faire</option>
+              <option value="plan">Planifier</option>
+              <option value="delegate">Deleguer</option>
+              <option value="eliminate">Eliminer</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Projet</label>
+            <select [(ngModel)]="newTemplate.project_id">
+              <option [value]="null">Aucun</option>
+              @for (project of projects(); track project.id) {
+                <option [value]="project.id">{{ project.name }}</option>
+              }
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" (click)="closeCreateModal()">Annuler</button>
+        <button class="btn primary" (click)="createTemplate()" [disabled]="!newTemplate.name || !newTemplate.title">
+          <i class="fas fa-save"></i> Creer
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- USE TEMPLATE MODAL -->
+@if (showUseModal()) {
+  <div class="modal-overlay" (click)="closeUseModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3><i class="fas fa-plus-circle"></i> Creer depuis template</h3>
+        <button (click)="closeUseModal()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Titre du ticket</label>
+          <input type="text" [(ngModel)]="useTicketTitle" placeholder="Titre du ticket">
+        </div>
+        <div class="form-group">
+          <label>Projet</label>
+          <select [(ngModel)]="useTicketProjectId">
+            @for (project of projects(); track project.id) {
+              <option [value]="project.id">{{ project.name }}</option>
+            }
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" (click)="closeUseModal()">Annuler</button>
+        <button class="btn primary" (click)="createFromTemplate()" [disabled]="!useTicketTitle">
+          <i class="fas fa-plus"></i> Creer le ticket
+        </button>
+      </div>
+    </div>
+  </div>
+}

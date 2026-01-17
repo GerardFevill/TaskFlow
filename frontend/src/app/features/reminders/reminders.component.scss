@@ -1,0 +1,91 @@
+.reminders-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.card h3 {
+  margin: 0 0 15px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card.urgent h3 {
+  color: var(--danger);
+}
+
+.card.warning h3 {
+  color: var(--warning);
+}
+
+.reminders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reminder-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.reminder-item:hover {
+  background: var(--border);
+  transform: translateX(5px);
+}
+
+.reminder-item.overdue {
+  border-left: 4px solid var(--danger);
+}
+
+.reminder-item .title {
+  flex: 1;
+  font-weight: 500;
+}
+
+.days-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.days-badge.danger {
+  background: rgba(214, 48, 49, 0.2);
+  color: var(--danger);
+}
+
+.days-badge.warning {
+  background: rgba(253, 203, 110, 0.2);
+  color: var(--warning);
+}
+
+.reminder-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  background: rgba(108, 92, 231, 0.2);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.no-items.success {
+  color: var(--success);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.no-items.success i {
+  font-size: 20px;
+}

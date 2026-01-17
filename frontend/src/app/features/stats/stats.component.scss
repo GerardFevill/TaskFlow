@@ -1,0 +1,123 @@
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 25px;
+  text-align: center;
+}
+
+.stat-card i {
+  font-size: 28px;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+
+.stat-card.todo i { color: var(--warning); }
+.stat-card.in-progress i { color: var(--plan); }
+.stat-card.done i { color: var(--success); }
+.stat-card.overdue i { color: var(--danger); }
+.stat-card.completed i { color: var(--success); }
+
+.stat-value { font-size: 42px; font-weight: 700; }
+.stat-label { color: var(--text-muted); font-size: 14px; margin-top: 8px; }
+
+.charts-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.card h3 {
+  margin: 0 0 20px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bar-chart { display: flex; flex-direction: column; gap: 12px; }
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bar-label {
+  min-width: 100px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.bar-label.do { color: var(--do); }
+.bar-label.plan { color: var(--plan); }
+.bar-label.delegate { color: var(--delegate); }
+.bar-label.eliminate { color: var(--eliminate); }
+
+.bar-container {
+  flex: 1;
+  height: 24px;
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.bar {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.5s ease;
+}
+
+.bar.do { background: var(--do); }
+.bar.plan { background: var(--plan); }
+.bar.delegate { background: var(--delegate); }
+.bar.eliminate { background: var(--eliminate); }
+.bar.todo { background: var(--warning); }
+.bar.in_progress { background: var(--plan); }
+.bar.done { background: var(--success); }
+
+.bar-value {
+  min-width: 30px;
+  text-align: right;
+  font-weight: 600;
+}
+
+.time-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+}
+
+.time-stat {
+  text-align: center;
+}
+
+.time-label {
+  display: block;
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.time-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.time-value.over { color: var(--danger); }
+
+.progress-container.large {
+  height: 12px;
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+}
+
+.progress-bar.over { background: var(--danger); }

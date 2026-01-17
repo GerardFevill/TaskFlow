@@ -1,0 +1,55 @@
+<svg [attr.viewBox]="'0 0 ' + size() + ' ' + size()" class="progress-ring">
+  <!-- Background circle -->
+  <circle
+    class="bg"
+    [attr.cx]="center()"
+    [attr.cy]="center()"
+    [attr.r]="radius()"
+    fill="none"
+    [attr.stroke]="bgColor()"
+    [attr.stroke-width]="strokeWidth()"
+  />
+  <!-- Progress circle -->
+  <circle
+    class="progress"
+    [attr.cx]="center()"
+    [attr.cy]="center()"
+    [attr.r]="radius()"
+    fill="none"
+    [attr.stroke]="color()"
+    [attr.stroke-width]="strokeWidth()"
+    [attr.stroke-dasharray]="circumference()"
+    [attr.stroke-dashoffset]="offset()"
+    stroke-linecap="round"
+    [style.transform]="'rotate(-90deg)'"
+    [style.transform-origin]="center() + 'px ' + center() + 'px'"
+  />
+  <!-- Percentage text -->
+  @if (showText()) {
+    <text
+      [attr.x]="center()"
+      [attr.y]="center()"
+      text-anchor="middle"
+      dominant-baseline="middle"
+      class="percentage-text"
+      [attr.fill]="textColor()"
+      [attr.font-size]="fontSize()"
+    >
+      {{ displayValue() }}{{ showPercent() ? '%' : '' }}
+    </text>
+  }
+  <!-- Label text -->
+  @if (label()) {
+    <text
+      [attr.x]="center()"
+      [attr.y]="center() + fontSize() * 0.8"
+      text-anchor="middle"
+      dominant-baseline="middle"
+      class="label-text"
+      [attr.fill]="labelColor()"
+      [attr.font-size]="fontSize() * 0.4"
+    >
+      {{ label() }}
+    </text>
+  }
+</svg>

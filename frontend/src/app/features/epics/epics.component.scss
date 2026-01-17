@@ -1,0 +1,269 @@
+.count-badge {
+  background: var(--bg-tertiary);
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.form-card {
+  margin-bottom: 20px;
+}
+
+.color-picker {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: none;
+}
+
+.filters {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.filters select {
+  padding: 10px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+}
+
+.status-filters {
+  display: flex;
+  gap: 8px;
+}
+
+.filter-btn {
+  padding: 8px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-btn:hover {
+  border-color: var(--accent);
+}
+
+.filter-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+.epics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.epic-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 12px;
+  padding: 20px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.epic-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+
+.epic-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.epic-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.epic-name {
+  margin: 0;
+  font-size: 18px;
+  flex: 1;
+}
+
+.epic-status {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: var(--bg-tertiary);
+}
+
+.epic-status.open { color: var(--warning); }
+.epic-status.in_progress { background: var(--plan); color: white; }
+.epic-status.completed { background: var(--success); color: white; }
+
+.epic-description {
+  color: var(--text-muted);
+  font-size: 14px;
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+.epic-project {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.epic-stats-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.epic-stats {
+  display: flex;
+  gap: 20px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.epic-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.action-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.action-btn:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+.action-btn.add-ticket {
+  background: var(--success);
+  border-color: var(--success);
+  color: white;
+}
+
+.action-btn.add-ticket:hover {
+  opacity: 0.9;
+}
+
+.action-btn.danger:hover {
+  background: var(--danger);
+  border-color: var(--danger);
+}
+
+.quick-ticket-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 12px;
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+}
+
+.quick-ticket-input {
+  flex: 1;
+  padding: 8px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.quick-ticket-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.edit-input, .edit-textarea, .edit-select {
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.edit-textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-small {
+  padding: 8px 12px;
+}
+
+@media (max-width: 768px) {
+  .epics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .status-filters {
+    flex-wrap: wrap;
+  }
+}

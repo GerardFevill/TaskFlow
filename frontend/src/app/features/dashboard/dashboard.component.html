@@ -1,0 +1,214 @@
+<div class="page-header">
+  <i class="fas fa-home"></i>
+  <h2>Tableau de bord</h2>
+  @if (currentProject()) {
+    <span class="project-badge" [style.background]="currentProject()!.color + '20'" [style.color]="currentProject()!.color">
+      <i class="fas" [class]="currentProject()!.icon"></i>
+      {{ currentProject()!.name }}
+    </span>
+  }
+</div>
+
+<!-- Project Stats Card -->
+@if (currentProject()) {
+  <div class="project-stats-card" [style.border-left-color]="currentProject()!.color">
+    <div class="project-icon" [style.color]="currentProject()!.color">
+      <i class="fas" [class]="currentProject()!.icon"></i>
+    </div>
+    <div class="project-info">
+      <h3>{{ currentProject()!.name }}</h3>
+      @if (currentProject()!.description) {
+        <p>{{ currentProject()!.description }}</p>
+      }
+    </div>
+    <div class="project-mini-stats">
+      <div class="mini-stat">
+        <span class="mini-value">{{ projectStats().total }}</span>
+        <span class="mini-label">Tickets</span>
+      </div>
+      <div class="mini-stat todo">
+        <span class="mini-value">{{ projectStats().todo }}</span>
+        <span class="mini-label">A faire</span>
+      </div>
+      <div class="mini-stat in-progress">
+        <span class="mini-value">{{ projectStats().inProgress }}</span>
+        <span class="mini-label">En cours</span>
+      </div>
+      <div class="mini-stat done">
+        <span class="mini-value">{{ projectStats().done }}</span>
+        <span class="mini-label">Termine</span>
+      </div>
+      <div class="mini-stat progress">
+        <div class="progress-ring">
+          <svg viewBox="0 0 36 36">
+            <path class="progress-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+            <path class="progress-fill" [style.stroke]="currentProject()!.color" [attr.stroke-dasharray]="projectStats().progress + ', 100'" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+          </svg>
+          <span class="progress-text">{{ projectStats().progress }}%</span>
+        </div>
+      </div>
+    </div>
+    <a class="project-link" [routerLink]="['/kanban']" [queryParams]="{project: currentProject()!.id}">
+      <i class="fas fa-columns"></i> Voir Kanban
+    </a>
+  </div>
+}
+
+<!-- Quick Stats -->
+@if (loading()) {
+  <div class="quick-stats">
+    @for (i of [1,2,3,4]; track i) {
+      <div class="stat-card skeleton-stat">
+        <div class="skeleton" style="width: 40px; height: 40px; border-radius: 8px;"></div>
+        <div class="stat-info">
+          <div class="skeleton" style="width: 50px; height: 28px; margin-bottom: 4px;"></div>
+          <div class="skeleton" style="width: 80px; height: 14px;"></div>
+        </div>
+      </div>
+    }
+  </div>
+} @else {
+  <div class="quick-stats">
+    <div class="stat-card accent">
+      <i class="fas fa-tasks"></i>
+      <div class="stat-info">
+        <span class="stat-value">{{ stats()?.total || 0 }}</span>
+        <span class="stat-label">Total tickets</span>
+      </div>
+    </div>
+    <div class="stat-card warning">
+      <i class="fas fa-clock"></i>
+      <div class="stat-info">
+        <span class="stat-value">{{ todayTickets().length }}</span>
+        <span class="stat-label">Aujourd'hui</span>
+      </div>
+    </div>
+    <div class="stat-card danger">
+      <i class="fas fa-exclamation-triangle"></i>
+      <div class="stat-info">
+        <span class="stat-value">{{ overdueTickets().length }}</span>
+        <span class="stat-label">En retard</span>
+      </div>
+    </div>
+    <div class="stat-card success">
+      <i class="fas fa-check-circle"></i>
+      <div class="stat-info">
+        <span class="stat-value">{{ stats()?.completedThisWeek || 0 }}</span>
+        <span class="stat-label">Cette semaine</span>
+      </div>
+    </div>
+  </div>
+}
+
+<div class="dashboard-grid">
+  <!-- Overdue Section -->
+  <div class="card urgent">
+    <div class="card-header">
+      <h3><i class="fas fa-fire"></i> En retard</h3>
+      <span class="count danger">{{ overdueTickets().length }}</span>
+    </div>
+    <div class="ticket-list">
+      @for (ticket of overdueTickets().slice(0, 5); track ticket.id) {
+        <div class="ticket-item" (click)="openTicket(ticket)">
+          <span class="priority" [class]="ticket.priority"><i class="fas fa-circle"></i></span>
+          <span class="title">{{ ticket.title }}</span>
+          <span class="due danger">{{ formatRelativeDate(ticket.due_date!) }}</span>
+        </div>
+      }
+      @if (overdueTickets().length === 0) {
+        <div class="empty success"><i class="fas fa-check"></i> Aucun retard</div>
+      }
+      @if (overdueTickets().length > 5) {
+        <a class="see-more" routerLink="/reminders">Voir tout ({{ overdueTickets().length }})</a>
+      }
+    </div>
+  </div>
+
+  <!-- Today Section -->
+  <div class="card today">
+    <div class="card-header">
+      <h3><i class="fas fa-calendar-day"></i> Aujourd'hui</h3>
+      <span class="count accent">{{ todayTickets().length }}</span>
+    </div>
+    <div class="ticket-list">
+      @for (ticket of todayTickets().slice(0, 5); track ticket.id) {
+        <div class="ticket-item" (click)="openTicket(ticket)">
+          <span class="priority" [class]="ticket.priority"><i class="fas fa-circle"></i></span>
+          <span class="title">{{ ticket.title }}</span>
+          <span class="status-badge" [class]="ticket.status">{{ formatStatus(ticket.status) }}</span>
+        </div>
+      }
+      @if (todayTickets().length === 0) {
+        <div class="empty"><i class="fas fa-coffee"></i> Rien pour aujourd'hui</div>
+      }
+    </div>
+  </div>
+
+  <!-- In Progress Section -->
+  <div class="card progress">
+    <div class="card-header">
+      <h3><i class="fas fa-spinner"></i> En cours</h3>
+      <span class="count plan">{{ inProgressTickets().length }}</span>
+    </div>
+    <div class="ticket-list">
+      @for (ticket of inProgressTickets().slice(0, 5); track ticket.id) {
+        <div class="ticket-item" (click)="openTicket(ticket)">
+          <span class="priority" [class]="ticket.priority"><i class="fas fa-circle"></i></span>
+          <span class="title">{{ ticket.title }}</span>
+          @if (ticket.time_estimated) {
+            <div class="mini-progress">
+              <div class="mini-bar" [style.width.%]="getProgress(ticket)"></div>
+            </div>
+          }
+        </div>
+      }
+      @if (inProgressTickets().length === 0) {
+        <div class="empty">Aucun ticket en cours</div>
+      }
+      @if (inProgressTickets().length > 5) {
+        <a class="see-more" routerLink="/kanban">Voir tout ({{ inProgressTickets().length }})</a>
+      }
+    </div>
+  </div>
+
+  <!-- This Week Section -->
+  <div class="card week">
+    <div class="card-header">
+      <h3><i class="fas fa-calendar-week"></i> Cette semaine</h3>
+      <span class="count">{{ thisWeekTickets().length }}</span>
+    </div>
+    <div class="ticket-list">
+      @for (ticket of thisWeekTickets().slice(0, 5); track ticket.id) {
+        <div class="ticket-item" (click)="openTicket(ticket)">
+          <span class="priority" [class]="ticket.priority"><i class="fas fa-circle"></i></span>
+          <span class="title">{{ ticket.title }}</span>
+          <span class="due">{{ formatShortDate(ticket.due_date!) }}</span>
+        </div>
+      }
+      @if (thisWeekTickets().length === 0) {
+        <div class="empty">Aucune echeance cette semaine</div>
+      }
+      @if (thisWeekTickets().length > 5) {
+        <a class="see-more" routerLink="/calendar">Voir tout ({{ thisWeekTickets().length }})</a>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="card recent">
+  <div class="card-header">
+    <h3><i class="fas fa-history"></i> Derniers tickets modifies</h3>
+  </div>
+  <div class="ticket-list horizontal">
+    @for (ticket of recentTickets().slice(0, 6); track ticket.id) {
+      <div class="ticket-card-mini" [class]="ticket.priority" (click)="openTicket(ticket)">
+        <div class="card-priority"><i class="fas fa-circle"></i></div>
+        <div class="card-title">{{ ticket.title }}</div>
+        <div class="card-meta">
+          <span class="status-badge small" [class]="ticket.status">{{ formatStatus(ticket.status) }}</span>
+        </div>
+      </div>
+    }
+  </div>
+</div>

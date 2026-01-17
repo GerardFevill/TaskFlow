@@ -1,0 +1,303 @@
+<div class="page-header">
+  <i class="fas fa-rocket"></i>
+  <h2>Sprints</h2>
+  <span class="count-badge">{{ sprints().length }} sprint(s)</span>
+</div>
+
+<!-- Formulaire de creation -->
+<div class="card form-card">
+  <div class="form-row">
+    <input type="text" [(ngModel)]="newSprint.name" placeholder="Nom du sprint..." (keyup.enter)="createSprint()">
+    <div class="date-group">
+      <label>Debut:</label>
+      <input type="date" [(ngModel)]="newSprint.start_date" class="date-input">
+    </div>
+    <div class="date-group">
+      <label>Fin:</label>
+      <input type="date" [(ngModel)]="newSprint.end_date" class="date-input">
+    </div>
+    <select [(ngModel)]="newSprint.project_id">
+      <option [ngValue]="null">Tous les projets</option>
+      @for (project of projects(); track project.id) {
+        <option [ngValue]="project.id">{{ project.name }}</option>
+      }
+    </select>
+    <button class="btn" (click)="createSprint()" [disabled]="!newSprint.name || !newSprint.start_date || !newSprint.end_date">
+      <i class="fas fa-plus"></i> Creer
+    </button>
+  </div>
+</div>
+
+<!-- Filtres -->
+<div class="filters">
+  <select [(ngModel)]="filterProjectId" (ngModelChange)="loadSprints()">
+    <option [ngValue]="null">Tous les projets</option>
+    @for (project of projects(); track project.id) {
+      <option [ngValue]="project.id">{{ project.name }}</option>
+    }
+  </select>
+  <div class="status-filters">
+    @for (status of sprintStatuses; track status.value) {
+      <button
+        class="filter-btn"
+        [class.active]="filterStatus() === status.value"
+        (click)="setFilterStatus(status.value)">
+        <i class="fas" [class]="status.icon"></i>
+        {{ status.label }}
+      </button>
+    }
+  </div>
+</div>
+
+<!-- Loading skeleton -->
+@if (loading()) {
+  <div class="sprints-grid">
+    @for (i of [1,2,3]; track i) {
+      <div class="skeleton-card">
+        <div class="skeleton skeleton-title"></div>
+        <div class="skeleton skeleton-text"></div>
+        <div class="skeleton-row">
+          <div class="skeleton skeleton-badge"></div>
+          <div class="skeleton skeleton-badge"></div>
+        </div>
+      </div>
+    }
+  </div>
+} @else {
+  <!-- Sprint actif en premier -->
+  @if (activeSprint()) {
+    <div class="active-sprint-banner">
+      <div class="active-header">
+        <i class="fas fa-bolt"></i>
+        <span>Sprint actif</span>
+      </div>
+      <div class="sprint-card active" [class.ending-soon]="isEndingSoon(activeSprint()!)">
+        <div class="sprint-header">
+          <h3 class="sprint-name">{{ activeSprint()!.name }}</h3>
+          <span class="sprint-status active">Actif</span>
+        </div>
+        @if (activeSprint()!.goal) {
+          <p class="sprint-goal">{{ activeSprint()!.goal }}</p>
+        }
+        <div class="sprint-dates">
+          <div class="date-item">
+            <i class="fas fa-play"></i>
+            <span>{{ formatDate(activeSprint()!.start_date) }}</span>
+          </div>
+          <div class="date-arrow"><i class="fas fa-arrow-right"></i></div>
+          <div class="date-item">
+            <i class="fas fa-flag-checkered"></i>
+            <span>{{ formatDate(activeSprint()!.end_date) }}</span>
+          </div>
+        </div>
+        <div class="sprint-countdown" [class.warning]="isEndingSoon(activeSprint()!)">
+          <i class="fas fa-hourglass-half"></i>
+          @if (getDaysRemaining(activeSprint()!) > 0) {
+            <span>{{ getDaysRemaining(activeSprint()!) }} jour(s) restants</span>
+          } @else if (getDaysRemaining(activeSprint()!) === 0) {
+            <span>Dernier jour !</span>
+          } @else {
+            <span class="overdue">Depasse de {{ -getDaysRemaining(activeSprint()!) }} jour(s)</span>
+          }
+          <div class="countdown-bar">
+            <div class="countdown-progress" [style.width.%]="getSprintProgress(activeSprint()!)"></div>
+          </div>
+        </div>
+        <div class="sprint-stats-row">
+          <div class="sprint-stats">
+            <div class="stat">
+              <span class="stat-value">{{ activeSprint()!.ticket_count || 0 }}</span>
+              <span class="stat-label">tickets</span>
+            </div>
+            <div class="stat">
+              <span class="stat-value">{{ activeSprint()!.ticket_done || 0 }}</span>
+              <span class="stat-label">termines</span>
+            </div>
+          </div>
+          <app-progress-ring
+            [value]="activeSprint()!.progress || 0"
+            [size]="80"
+            [strokeWidth]="7"
+            color="#4ecdc4"
+            bgColor="#4ecdc4"
+            [label]="(activeSprint()!.ticket_done || 0) + '/' + (activeSprint()!.ticket_count || 0)"
+          />
+        </div>
+        <!-- Burndown Chart -->
+        <div class="burndown-section">
+          <app-burndown-chart [sprintId]="activeSprint()!.id" />
+        </div>
+        <!-- Quick ticket creation for active sprint -->
+        @if (addingTicketToSprint() === activeSprint()!.id) {
+          <div class="quick-ticket-form">
+            <input
+              type="text"
+              [(ngModel)]="newTicketTitle"
+              placeholder="Titre du ticket..."
+              (keyup.enter)="createTicketForSprint(activeSprint()!)"
+              (keyup.escape)="cancelAddTicket()"
+              class="quick-ticket-input"
+            >
+            <button class="btn btn-small" (click)="createTicketForSprint(activeSprint()!)">
+              <i class="fas fa-check"></i>
+            </button>
+            <button class="btn btn-secondary btn-small" (click)="cancelAddTicket()">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        }
+        <div class="sprint-actions">
+          <button class="action-btn add-ticket" (click)="startAddTicket(activeSprint()!)" title="Ajouter un ticket">
+            <i class="fas fa-plus"></i>
+          </button>
+          <button class="action-btn" (click)="startEdit(activeSprint()!)" title="Modifier">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="action-btn" (click)="completeSprint(activeSprint()!)" title="Terminer le sprint">
+            <i class="fas fa-check"></i>
+          </button>
+          <a [routerLink]="['/kanban']" [queryParams]="{sprint_id: activeSprint()!.id}" class="action-btn highlight" title="Voir le board">
+            <i class="fas fa-columns"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Autres sprints par statut -->
+  @if (planningSprints().length > 0) {
+    <div class="sprint-section">
+      <h3 class="section-title"><i class="fas fa-clipboard-list"></i> En planification</h3>
+      <div class="sprints-grid">
+        @for (sprint of planningSprints(); track sprint.id) {
+          <ng-container *ngTemplateOutlet="sprintCard; context: { sprint }"></ng-container>
+        }
+      </div>
+    </div>
+  }
+
+  @if (completedSprints().length > 0) {
+    <div class="sprint-section">
+      <h3 class="section-title"><i class="fas fa-trophy"></i> Termines</h3>
+      <div class="sprints-grid">
+        @for (sprint of completedSprints(); track sprint.id) {
+          <ng-container *ngTemplateOutlet="sprintCard; context: { sprint }"></ng-container>
+        }
+      </div>
+    </div>
+  }
+
+  @if (filteredSprints().length === 0) {
+    <div class="empty-state">
+      <i class="fas fa-rocket"></i>
+      <h3>Aucun sprint</h3>
+      <p>Creez votre premier sprint pour organiser vos iterations</p>
+    </div>
+  }
+
+  <!-- Velocity Chart Section -->
+  <div class="velocity-section">
+    <h3 class="section-title"><i class="fas fa-chart-line"></i> Velocity</h3>
+    <app-velocity-chart [projectId]="filterProjectId() ?? undefined" />
+  </div>
+}
+
+<!-- Template pour carte sprint -->
+<ng-template #sprintCard let-sprint="sprint">
+  <div class="sprint-card" [class]="sprint.status">
+    @if (editingSprint()?.id === sprint.id) {
+      <!-- Mode edition -->
+      <div class="edit-form">
+        <input type="text" [(ngModel)]="editingSprint()!.name" class="edit-input" placeholder="Nom du sprint">
+        <textarea [(ngModel)]="editingSprint()!.goal" placeholder="Objectif du sprint..." class="edit-textarea"></textarea>
+        <div class="edit-row">
+          <input type="date" [(ngModel)]="editingSprint()!.start_date" class="date-input">
+          <input type="date" [(ngModel)]="editingSprint()!.end_date" class="date-input">
+        </div>
+        <select [(ngModel)]="editingSprint()!.status" class="edit-select">
+          @for (status of sprintStatuses.slice(1); track status.value) {
+            <option [value]="status.value">{{ status.label }}</option>
+          }
+        </select>
+        <div class="edit-actions">
+          <button class="btn btn-small" (click)="saveSprint()"><i class="fas fa-check"></i></button>
+          <button class="btn btn-secondary btn-small" (click)="cancelEdit()"><i class="fas fa-times"></i></button>
+        </div>
+      </div>
+    } @else {
+      <!-- Mode affichage -->
+      <div class="sprint-header">
+        <h3 class="sprint-name">{{ sprint.name }}</h3>
+        <span class="sprint-status" [class]="sprint.status">{{ getStatusLabel(sprint.status) }}</span>
+      </div>
+      @if (sprint.goal) {
+        <p class="sprint-goal">{{ sprint.goal }}</p>
+      }
+      @if (sprint.project_name) {
+        <div class="sprint-project">
+          <i class="fas fa-folder"></i>
+          <span>{{ sprint.project_name }}</span>
+        </div>
+      }
+      <div class="sprint-dates compact">
+        <span><i class="fas fa-calendar"></i> {{ formatDate(sprint.start_date) }} - {{ formatDate(sprint.end_date) }}</span>
+      </div>
+      <div class="sprint-stats">
+        <div class="stat">
+          <span class="stat-value">{{ sprint.ticket_count || 0 }}</span>
+          <span class="stat-label">tickets</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">{{ sprint.progress || 0 }}%</span>
+          <span class="stat-label">progres</span>
+        </div>
+      </div>
+      <div class="progress-container">
+        <div class="progress-bar" [style.width.%]="sprint.progress || 0"></div>
+      </div>
+      <!-- Quick ticket creation -->
+      @if (addingTicketToSprint() === sprint.id) {
+        <div class="quick-ticket-form">
+          <input
+            type="text"
+            [(ngModel)]="newTicketTitle"
+            placeholder="Titre du ticket..."
+            (keyup.enter)="createTicketForSprint(sprint)"
+            (keyup.escape)="cancelAddTicket()"
+            class="quick-ticket-input"
+          >
+          <button class="btn btn-small" (click)="createTicketForSprint(sprint)">
+            <i class="fas fa-check"></i>
+          </button>
+          <button class="btn btn-secondary btn-small" (click)="cancelAddTicket()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      }
+      <div class="sprint-actions">
+        <button class="action-btn add-ticket" (click)="startAddTicket(sprint)" title="Ajouter un ticket">
+          <i class="fas fa-plus"></i>
+        </button>
+        <button class="action-btn" (click)="startEdit(sprint)" title="Modifier">
+          <i class="fas fa-edit"></i>
+        </button>
+        @if (sprint.status === 'planning') {
+          <button class="action-btn" (click)="startSprint(sprint)" title="Demarrer le sprint">
+            <i class="fas fa-play"></i>
+          </button>
+        }
+        @if (sprint.status === 'active') {
+          <button class="action-btn" (click)="completeSprint(sprint)" title="Terminer le sprint">
+            <i class="fas fa-check"></i>
+          </button>
+        }
+        <a [routerLink]="['/kanban']" [queryParams]="{sprint_id: sprint.id}" class="action-btn" title="Voir tickets">
+          <i class="fas fa-eye"></i>
+        </a>
+        <button class="action-btn danger" (click)="deleteSprint(sprint)" title="Supprimer">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+    }
+  </div>
+</ng-template>

@@ -1,0 +1,173 @@
+<div class="page-header">
+  <i class="fas fa-map-pin"></i>
+  <h2>Milestones</h2>
+  <span class="count-badge">{{ milestones().length }} jalon(s)</span>
+</div>
+
+<!-- Formulaire de creation -->
+<div class="card form-card">
+  <div class="form-row">
+    <input type="text" [(ngModel)]="newMilestone.name" placeholder="Nom du jalon..." (keyup.enter)="createMilestone()">
+    <input type="date" [(ngModel)]="newMilestone.due_date" class="date-input">
+    <select [(ngModel)]="newMilestone.project_id">
+      <option [ngValue]="null">Tous les projets</option>
+      @for (project of projects(); track project.id) {
+        <option [ngValue]="project.id">{{ project.name }}</option>
+      }
+    </select>
+    <button class="btn" (click)="createMilestone()" [disabled]="!newMilestone.name || !newMilestone.due_date">
+      <i class="fas fa-plus"></i> Creer
+    </button>
+  </div>
+</div>
+
+<!-- Filtres -->
+<div class="filters">
+  <select [(ngModel)]="filterProjectId" (ngModelChange)="loadMilestones()">
+    <option [ngValue]="null">Tous les projets</option>
+    @for (project of projects(); track project.id) {
+      <option [ngValue]="project.id">{{ project.name }}</option>
+    }
+  </select>
+  <div class="status-filters">
+    <button class="filter-btn" [class.active]="filterStatus() === null" (click)="setFilterStatus(null)">Tous</button>
+    <button class="filter-btn" [class.active]="filterStatus() === 'open'" (click)="setFilterStatus('open')">Ouverts</button>
+    <button class="filter-btn" [class.active]="filterStatus() === 'closed'" (click)="setFilterStatus('closed')">Fermes</button>
+  </div>
+</div>
+
+<!-- Loading skeleton -->
+@if (loading()) {
+  <div class="milestones-timeline">
+    @for (i of [1,2,3]; track i) {
+      <div class="skeleton-card">
+        <div class="skeleton skeleton-title"></div>
+        <div class="skeleton skeleton-text"></div>
+        <div class="skeleton-row">
+          <div class="skeleton skeleton-badge"></div>
+          <div class="skeleton skeleton-badge"></div>
+        </div>
+      </div>
+    }
+  </div>
+} @else if (filteredMilestones().length === 0) {
+  <div class="empty-state">
+    <i class="fas fa-map-pin"></i>
+    <h3>Aucun jalon</h3>
+    <p>Creez des jalons pour suivre les dates importantes de vos projets</p>
+  </div>
+} @else {
+  <div class="milestones-timeline">
+    @for (milestone of filteredMilestones(); track milestone.id) {
+      <div class="milestone-item" [class.overdue]="isOverdue(milestone)" [class.closed]="milestone.status === 'closed'">
+        <div class="timeline-marker" [class.overdue]="isOverdue(milestone)" [class.closed]="milestone.status === 'closed'">
+          <i class="fas" [class.fa-flag-checkered]="milestone.status === 'closed'" [class.fa-map-pin]="milestone.status !== 'closed'"></i>
+        </div>
+        <div class="milestone-content">
+          @if (editingMilestone()?.id === milestone.id) {
+            <!-- Mode edition -->
+            <div class="edit-form">
+              <input type="text" [(ngModel)]="editingMilestone()!.name" class="edit-input">
+              <textarea [(ngModel)]="editingMilestone()!.description" placeholder="Description..." class="edit-textarea"></textarea>
+              <div class="edit-row">
+                <input type="date" [(ngModel)]="editingMilestone()!.due_date" class="date-input">
+                <select [(ngModel)]="editingMilestone()!.status" class="edit-select">
+                  <option value="open">Ouvert</option>
+                  <option value="closed">Ferme</option>
+                </select>
+              </div>
+              <div class="edit-actions">
+                <button class="btn btn-small" (click)="saveMilestone()"><i class="fas fa-check"></i></button>
+                <button class="btn btn-secondary btn-small" (click)="cancelEdit()"><i class="fas fa-times"></i></button>
+              </div>
+            </div>
+          } @else {
+            <!-- Mode affichage -->
+            <div class="milestone-header">
+              <h3 class="milestone-name">{{ milestone.name }}</h3>
+              <span class="milestone-status" [class]="milestone.status">
+                {{ milestone.status === 'open' ? 'Ouvert' : 'Ferme' }}
+              </span>
+            </div>
+            @if (milestone.description) {
+              <p class="milestone-description">{{ milestone.description }}</p>
+            }
+            <div class="milestone-meta">
+              <span class="due-date" [class.overdue]="isOverdue(milestone)">
+                <i class="fas fa-calendar"></i>
+                {{ formatDate(milestone.due_date) }}
+                @if (isOverdue(milestone)) {
+                  <span class="overdue-badge">En retard</span>
+                } @else if (getDaysRemaining(milestone) <= 7 && milestone.status === 'open') {
+                  <span class="soon-badge">{{ getDaysRemaining(milestone) }}j restants</span>
+                }
+              </span>
+              @if (milestone.project_name) {
+                <span class="project-info">
+                  <i class="fas fa-folder"></i>
+                  {{ milestone.project_name }}
+                </span>
+              }
+            </div>
+            <div class="milestone-stats-row">
+              <div class="milestone-stats">
+                <div class="stat">
+                  <span class="stat-value">{{ milestone.ticket_count || 0 }}</span>
+                  <span class="stat-label">tickets</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-value">{{ milestone.ticket_done || 0 }}</span>
+                  <span class="stat-label">termines</span>
+                </div>
+              </div>
+              <app-progress-ring
+                [value]="milestone.progress || 0"
+                [size]="60"
+                [strokeWidth]="5"
+                [color]="isOverdue(milestone) ? '#d63031' : '#6c5ce7'"
+                [bgColor]="isOverdue(milestone) ? '#d63031' : '#6c5ce7'"
+                [label]="(milestone.ticket_done || 0) + '/' + (milestone.ticket_count || 0)"
+              />
+            </div>
+            <!-- Quick ticket creation -->
+            @if (addingTicketToMilestone() === milestone.id) {
+              <div class="quick-ticket-form">
+                <input
+                  type="text"
+                  [(ngModel)]="newTicketTitle"
+                  placeholder="Titre du ticket..."
+                  (keyup.enter)="createTicketForMilestone(milestone)"
+                  (keyup.escape)="cancelAddTicket()"
+                  class="quick-ticket-input"
+                >
+                <button class="btn btn-small" (click)="createTicketForMilestone(milestone)">
+                  <i class="fas fa-check"></i>
+                </button>
+                <button class="btn btn-secondary btn-small" (click)="cancelAddTicket()">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            }
+            <div class="milestone-actions">
+              <button class="action-btn add-ticket" (click)="startAddTicket(milestone)" title="Ajouter un ticket">
+                <i class="fas fa-plus"></i>
+              </button>
+              <button class="action-btn" (click)="startEdit(milestone)" title="Modifier">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="action-btn" (click)="toggleStatus(milestone)" [title]="milestone.status === 'open' ? 'Fermer' : 'Rouvrir'">
+                <i class="fas" [class.fa-check]="milestone.status === 'open'" [class.fa-undo]="milestone.status === 'closed'"></i>
+              </button>
+              <a [routerLink]="['/kanban']" [queryParams]="{milestone_id: milestone.id}" class="action-btn" title="Voir tickets">
+                <i class="fas fa-eye"></i>
+              </a>
+              <button class="action-btn danger" (click)="deleteMilestone(milestone)" title="Supprimer">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+}

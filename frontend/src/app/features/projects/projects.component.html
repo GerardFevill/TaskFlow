@@ -1,0 +1,136 @@
+<div class="page-header">
+  <i class="fas fa-folder-open"></i>
+  <h2>Projets</h2>
+  <span class="count">{{ projects().length }} projet(s)</span>
+</div>
+
+<!-- Formulaire nouveau projet -->
+<div class="new-project-form">
+  <div class="form-row">
+    <div class="icon-picker">
+      <button class="icon-btn" [style.color]="newColor" (click)="showIconPicker.set(!showIconPicker())">
+        <i class="fas" [class]="newIcon"></i>
+      </button>
+      @if (showIconPicker()) {
+        <div class="icon-dropdown">
+          @for (icon of availableIcons; track icon) {
+            <button (click)="selectIcon(icon)" [class.active]="newIcon === icon">
+              <i class="fas" [class]="icon"></i>
+            </button>
+          }
+        </div>
+      }
+    </div>
+    <input type="color" [(ngModel)]="newColor" class="color-input">
+    <input
+      type="text"
+      [(ngModel)]="newName"
+      placeholder="Nom du projet..."
+      class="name-input"
+      (keyup.enter)="createProject()">
+    <button class="btn-create" (click)="createProject()" [disabled]="!newName.trim()">
+      <i class="fas fa-plus"></i> Creer
+    </button>
+  </div>
+</div>
+
+<!-- Liste des projets -->
+<div class="projects-grid">
+  @for (project of projects(); track project.id) {
+    <div class="project-card" [class.editing]="editingId() === project.id">
+      @if (editingId() === project.id) {
+        <!-- Mode edition -->
+        <div class="edit-form">
+          <div class="edit-row">
+            <input type="color" [(ngModel)]="editColor" class="color-input">
+            <input type="text" [(ngModel)]="editName" class="name-input" (keyup.enter)="saveEdit(project)">
+          </div>
+          <textarea [(ngModel)]="editDescription" placeholder="Description..." class="desc-input"></textarea>
+          <div class="edit-actions">
+            <button class="btn-save" (click)="saveEdit(project)">
+              <i class="fas fa-check"></i> Sauvegarder
+            </button>
+            <button class="btn-cancel" (click)="cancelEdit()">
+              <i class="fas fa-times"></i> Annuler
+            </button>
+          </div>
+        </div>
+      } @else {
+        <!-- Mode affichage -->
+        <div class="card-header" [style.border-left-color]="project.color">
+          <div class="project-icon" [style.color]="project.color">
+            <i class="fas" [class]="project.icon"></i>
+          </div>
+          <div class="project-info">
+            <h3>{{ project.name }}</h3>
+            @if (project.description) {
+              <p class="description">{{ project.description }}</p>
+            }
+          </div>
+          <div class="project-stats">
+            <span class="stat">
+              <i class="fas fa-ticket-alt"></i>
+              {{ project.ticket_count || 0 }}
+            </span>
+            @if (project.ticket_count && project.ticket_count > 0) {
+              <div class="progress-bar">
+                <div class="progress" [style.width.%]="getProgress(project)" [style.background]="project.color"></div>
+              </div>
+              <span class="progress-text">{{ getProgress(project) | number:'1.0-0' }}%</span>
+            }
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="btn-view" (click)="viewProject(project)">
+            <i class="fas fa-eye"></i> Voir
+          </button>
+          <button class="btn-whiteboard" (click)="openWhiteboard(project)" title="Tableau blanc">
+            <i class="fas fa-chalkboard"></i>
+          </button>
+          <button class="btn-edit" (click)="startEdit(project)">
+            <i class="fas fa-pen"></i> Modifier
+          </button>
+          @if (project.id !== 1) {
+            <button class="btn-transform" (click)="convertToTicket(project)" title="Convertir en ticket">
+              <i class="fas fa-ticket-alt"></i>
+            </button>
+            <button class="btn-transform" (click)="showConvertToTask(project)" title="Convertir en tache">
+              <i class="fas fa-tasks"></i>
+            </button>
+            <button class="btn-delete" (click)="deleteProject(project)">
+              <i class="fas fa-trash"></i>
+            </button>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>
+
+@if (projects().length === 0) {
+  <div class="empty-state">
+    <i class="fas fa-folder-plus"></i>
+    <h3>Aucun projet</h3>
+    <p>Creez votre premier projet ci-dessus</p>
+  </div>
+}
+
+<!-- Modal: Convertir en tache -->
+@if (showConvertToTaskModal()) {
+  <div class="modal-backdrop" (click)="showConvertToTaskModal.set(false)">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h3><i class="fas fa-tasks"></i> Convertir en tache</h3>
+      <p>Choisir le ticket dans lequel ajouter cette tache :</p>
+      <select [(ngModel)]="targetTicketId" class="form-select">
+        <option [value]="0">Selectionner un ticket...</option>
+        @for (t of availableTickets(); track t.id) {
+          <option [value]="t.id">{{ t.title }}</option>
+        }
+      </select>
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="showConvertToTaskModal.set(false)">Annuler</button>
+        <button class="btn-save" (click)="convertToTask()" [disabled]="!targetTicketId">Convertir</button>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,168 @@
+<div class="page-header">
+  <button class="back-btn" (click)="goBack()">
+    <i class="fas fa-arrow-left"></i>
+  </button>
+  <i class="fas fa-plus-circle"></i>
+  <h2>Nouveau Ticket</h2>
+</div>
+
+<div class="create-form">
+  <div class="form-section">
+    <h3><i class="fas fa-info-circle"></i> Informations</h3>
+
+    <div class="form-group">
+      <label>Titre *</label>
+      <input
+        type="text"
+        [(ngModel)]="ticket.title"
+        placeholder="Titre du ticket..."
+        class="form-input"
+        autofocus
+      >
+    </div>
+
+    <div class="form-group">
+      <label>Description</label>
+      <textarea
+        [(ngModel)]="ticket.description"
+        placeholder="Description du ticket..."
+        class="form-textarea"
+      ></textarea>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label><i class="fas fa-flag"></i> Priorité</label>
+        <select [(ngModel)]="ticket.priority" class="form-select">
+          <option value="do">Faire (Urgent + Important)</option>
+          <option value="plan">Planifier (Important)</option>
+          <option value="delegate">Déléguer (Urgent)</option>
+          <option value="eliminate">Éliminer</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label><i class="fas fa-tasks"></i> Statut</label>
+        <select [(ngModel)]="ticket.status" class="form-select">
+          <option value="todo">À faire</option>
+          <option value="in_progress">En cours</option>
+          <option value="done">Terminé</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label><i class="fas fa-calendar-plus"></i> Date début</label>
+        <input type="date" [(ngModel)]="ticket.start_date" class="form-input">
+      </div>
+
+      <div class="form-group">
+        <label><i class="fas fa-calendar-check"></i> Échéance</label>
+        <input type="date" [(ngModel)]="ticket.due_date" class="form-input">
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h3><i class="fas fa-sitemap"></i> Organisation</h3>
+
+    <div class="form-group">
+      <label><i class="fas fa-folder"></i> Projet</label>
+      <select [(ngModel)]="ticket.project_id" class="form-select">
+        @for (project of projects(); track project.id) {
+          <option [ngValue]="project.id">{{ project.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label><i class="fas fa-flag"></i> Epic</label>
+        <select [(ngModel)]="ticket.epic_id" class="form-select">
+          <option [ngValue]="null">Aucun epic</option>
+          @for (epic of epics(); track epic.id) {
+            <option [ngValue]="epic.id">{{ epic.name }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label><i class="fas fa-rocket"></i> Sprint</label>
+        <select [(ngModel)]="ticket.sprint_id" class="form-select">
+          <option [ngValue]="null">Aucun sprint</option>
+          @for (sprint of sprints(); track sprint.id) {
+            <option [ngValue]="sprint.id">{{ sprint.name }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label><i class="fas fa-map-pin"></i> Milestone</label>
+      <select [(ngModel)]="ticket.milestone_id" class="form-select">
+        <option [ngValue]="null">Aucun jalon</option>
+        @for (milestone of milestones(); track milestone.id) {
+          <option [ngValue]="milestone.id">{{ milestone.name }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h3><i class="fas fa-tags"></i> Labels</h3>
+    <div class="labels-selection">
+      @for (label of uniqueLabels(); track label.id) {
+        <button
+          class="label-btn"
+          [class.selected]="isLabelSelected(label.id)"
+          [style.background]="isLabelSelected(label.id) ? label.color : null"
+          [style.borderColor]="isLabelSelected(label.id) ? label.color : null"
+          (click)="toggleLabel(label.id)"
+        >
+          <span class="label-dot" [style.background]="label.color"></span>
+          {{ label.name }}
+          @if (isLabelSelected(label.id)) {
+            <i class="fas fa-check"></i>
+          }
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h3><i class="fas fa-cog"></i> Options</h3>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label><i class="fas fa-sync"></i> Récurrence</label>
+        <select [(ngModel)]="ticket.recurrence" class="form-select">
+          <option value="none">Aucune</option>
+          <option value="daily">Quotidienne</option>
+          <option value="weekly">Hebdomadaire</option>
+          <option value="monthly">Mensuelle</option>
+          <option value="yearly">Annuelle</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label><i class="fas fa-bell"></i> Rappel (jours avant)</label>
+        <input type="number" [(ngModel)]="ticket.reminder_days" min="0" class="form-input">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label><i class="fas fa-clock"></i> Temps estimé (minutes)</label>
+      <input type="number" [(ngModel)]="ticket.time_estimated" min="0" class="form-input">
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button class="btn btn-secondary" (click)="goBack()">
+      <i class="fas fa-times"></i> Annuler
+    </button>
+    <button class="btn btn-primary" (click)="createTicket()" [disabled]="!ticket.title.trim()">
+      <i class="fas fa-check"></i> Créer le ticket
+    </button>
+  </div>
+</div>

@@ -1,0 +1,158 @@
+<div class="page-header">
+  <i class="fas fa-flag"></i>
+  <h2>Epics</h2>
+  <span class="count-badge">{{ epics().length }} epic(s)</span>
+</div>
+
+<!-- Formulaire de creation -->
+<div class="card form-card">
+  <div class="form-row">
+    <input type="color" [(ngModel)]="newEpic.color" class="color-picker">
+    <input type="text" [(ngModel)]="newEpic.name" placeholder="Nom de l'epic..." (keyup.enter)="createEpic()">
+    <select [(ngModel)]="newEpic.project_id">
+      <option [ngValue]="null">Tous les projets</option>
+      @for (project of projects(); track project.id) {
+        <option [ngValue]="project.id">{{ project.name }}</option>
+      }
+    </select>
+    <button class="btn" (click)="createEpic()" [disabled]="!newEpic.name">
+      <i class="fas fa-plus"></i> Creer
+    </button>
+  </div>
+</div>
+
+<!-- Filtres -->
+<div class="filters">
+  <select [(ngModel)]="filterProjectId" (ngModelChange)="loadEpics()">
+    <option [ngValue]="null">Tous les projets</option>
+    @for (project of projects(); track project.id) {
+      <option [ngValue]="project.id">{{ project.name }}</option>
+    }
+  </select>
+  <div class="status-filters">
+    @for (status of epicStatuses; track status.value) {
+      <button
+        class="filter-btn"
+        [class.active]="filterStatus() === status.value"
+        (click)="setFilterStatus(status.value)">
+        {{ status.label }}
+      </button>
+    }
+  </div>
+</div>
+
+<!-- Loading skeleton -->
+@if (loading()) {
+  <div class="epics-grid">
+    @for (i of [1,2,3,4]; track i) {
+      <div class="skeleton-card">
+        <div class="skeleton skeleton-title"></div>
+        <div class="skeleton skeleton-text"></div>
+        <div class="skeleton-row">
+          <div class="skeleton skeleton-badge"></div>
+          <div class="skeleton skeleton-badge"></div>
+        </div>
+      </div>
+    }
+  </div>
+} @else if (filteredEpics().length === 0) {
+  <div class="empty-state">
+    <i class="fas fa-flag"></i>
+    <h3>Aucun epic</h3>
+    <p>Creez votre premier epic pour regrouper vos tickets</p>
+  </div>
+} @else {
+  <div class="epics-grid">
+    @for (epic of filteredEpics(); track epic.id) {
+      <div class="epic-card" [style.border-left-color]="epic.color">
+        @if (editingEpic()?.id === epic.id) {
+          <!-- Mode edition -->
+          <div class="edit-form">
+            <input type="color" [(ngModel)]="editingEpic()!.color" class="color-picker">
+            <input type="text" [(ngModel)]="editingEpic()!.name" class="edit-input">
+            <textarea [(ngModel)]="editingEpic()!.description" placeholder="Description..." class="edit-textarea"></textarea>
+            <select [(ngModel)]="editingEpic()!.status" class="edit-select">
+              @for (status of epicStatuses; track status.value) {
+                <option [value]="status.value">{{ status.label }}</option>
+              }
+            </select>
+            <div class="edit-actions">
+              <button class="btn btn-small" (click)="saveEpic()"><i class="fas fa-check"></i></button>
+              <button class="btn btn-secondary btn-small" (click)="cancelEdit()"><i class="fas fa-times"></i></button>
+            </div>
+          </div>
+        } @else {
+          <!-- Mode affichage -->
+          <div class="epic-header">
+            <div class="epic-color" [style.background]="epic.color"></div>
+            <h3 class="epic-name">{{ epic.name }}</h3>
+            <span class="epic-status" [class]="epic.status">{{ getStatusLabel(epic.status) }}</span>
+          </div>
+          @if (epic.description) {
+            <p class="epic-description">{{ epic.description }}</p>
+          }
+          @if (epic.project_name) {
+            <div class="epic-project">
+              <i class="fas fa-folder"></i>
+              <span [style.color]="epic.project_color">{{ epic.project_name }}</span>
+            </div>
+          }
+          <div class="epic-stats-row">
+            <div class="epic-stats">
+              <div class="stat">
+                <span class="stat-value">{{ epic.ticket_count || 0 }}</span>
+                <span class="stat-label">tickets</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value">{{ epic.ticket_done || 0 }}</span>
+                <span class="stat-label">termines</span>
+              </div>
+            </div>
+            <app-progress-ring
+              [value]="epic.progress || 0"
+              [size]="70"
+              [strokeWidth]="6"
+              [color]="epic.color"
+              [bgColor]="epic.color"
+              [label]="(epic.ticket_done || 0) + '/' + (epic.ticket_count || 0)"
+            />
+          </div>
+          <!-- Quick ticket creation -->
+          @if (addingTicketToEpic() === epic.id) {
+            <div class="quick-ticket-form">
+              <input
+                type="text"
+                [(ngModel)]="newTicketTitle"
+                placeholder="Titre du ticket..."
+                (keyup.enter)="createTicketForEpic(epic)"
+                (keyup.escape)="cancelAddTicket()"
+                class="quick-ticket-input"
+                #ticketInput
+              >
+              <button class="btn btn-small" (click)="createTicketForEpic(epic)">
+                <i class="fas fa-check"></i>
+              </button>
+              <button class="btn btn-secondary btn-small" (click)="cancelAddTicket()">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          }
+          <div class="epic-actions">
+            <button class="action-btn add-ticket" (click)="startAddTicket(epic)" title="Ajouter un ticket">
+              <i class="fas fa-plus"></i>
+            </button>
+            <button class="action-btn" (click)="startEdit(epic)" title="Modifier">
+              <i class="fas fa-edit"></i>
+            </button>
+            <a [routerLink]="['/kanban']" [queryParams]="{epic_id: epic.id}" class="action-btn" title="Voir tickets">
+              <i class="fas fa-eye"></i>
+            </a>
+            <button class="action-btn danger" (click)="deleteEpic(epic)" title="Supprimer">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+}

@@ -1,0 +1,45 @@
+<div class="page-header">
+  <i class="fas fa-calendar-alt"></i>
+  <h2>Calendrier</h2>
+</div>
+
+<div class="calendar-grid">
+  @for (month of months(); track month.name) {
+    <div class="month-card">
+      <h3>{{ month.name }}</h3>
+      <div class="days-grid">
+        @for (day of month.days; track day.date) {
+          <div class="day" [class.today]="isToday(day.date)" [class.has-tickets]="day.tickets.length > 0">
+            <span class="day-num">{{ day.num }}</span>
+            @for (ticket of day.tickets; track ticket.id) {
+              <div class="day-ticket" [class]="ticket.priority" (click)="openTicket(ticket)">
+                {{ ticket.title | slice:0:15 }}{{ ticket.title.length > 15 ? '...' : '' }}
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
+
+<div class="card">
+  <h3><i class="fas fa-list"></i> Echeances a venir</h3>
+  <div class="upcoming-list">
+    @for (ticket of upcomingTickets(); track ticket.id) {
+      <div class="upcoming-item" [class.overdue]="isOverdue(ticket)" (click)="openTicket(ticket)">
+        <span class="priority" [class]="ticket.priority"><i class="fas fa-circle"></i></span>
+        <span class="date">{{ formatDate(ticket.due_date!) }}</span>
+        <span class="title">{{ ticket.title }}</span>
+        <span class="status-badge" [class]="ticket.status">{{ formatStatus(ticket.status) }}</span>
+      </div>
+    }
+    @if (upcomingTickets().length === 0) {
+      <div class="empty-state">
+        <i class="fas fa-calendar-times"></i>
+        <h3>Aucune echeance</h3>
+        <p>Ajoutez des dates a vos tickets pour les voir ici</p>
+      </div>
+    }
+  </div>
+</div>

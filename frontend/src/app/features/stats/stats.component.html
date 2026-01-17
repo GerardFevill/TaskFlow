@@ -1,0 +1,90 @@
+<div class="page-header">
+  <i class="fas fa-chart-pie"></i>
+  <h2>Statistiques</h2>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card total">
+    <i class="fas fa-ticket-alt"></i>
+    <div class="stat-value">{{ stats()?.total || 0 }}</div>
+    <div class="stat-label">Tickets Total</div>
+  </div>
+  <div class="stat-card todo">
+    <i class="fas fa-clipboard-list"></i>
+    <div class="stat-value">{{ getStatByStatus('todo') }}</div>
+    <div class="stat-label">A faire</div>
+  </div>
+  <div class="stat-card in-progress">
+    <i class="fas fa-spinner"></i>
+    <div class="stat-value">{{ getStatByStatus('in_progress') }}</div>
+    <div class="stat-label">En cours</div>
+  </div>
+  <div class="stat-card done">
+    <i class="fas fa-check-circle"></i>
+    <div class="stat-value">{{ getStatByStatus('done') }}</div>
+    <div class="stat-label">Termines</div>
+  </div>
+  <div class="stat-card overdue">
+    <i class="fas fa-exclamation-triangle"></i>
+    <div class="stat-value">{{ stats()?.overdue || 0 }}</div>
+    <div class="stat-label">En retard</div>
+  </div>
+  <div class="stat-card completed">
+    <i class="fas fa-calendar-check"></i>
+    <div class="stat-value">{{ stats()?.completedThisWeek || 0 }}</div>
+    <div class="stat-label">Cette semaine</div>
+  </div>
+</div>
+
+<div class="charts-row">
+  <div class="card">
+    <h3><i class="fas fa-flag"></i> Par priorite</h3>
+    <div class="bar-chart">
+      @for (item of stats()?.byPriority || []; track item.priority) {
+        <div class="bar-row">
+          <span class="bar-label" [class]="item.priority">{{ formatPriority(item.priority) }}</span>
+          <div class="bar-container">
+            <div class="bar" [class]="item.priority" [style.width.%]="getPercentage(item.count)"></div>
+          </div>
+          <span class="bar-value">{{ item.count }}</span>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="card">
+    <h3><i class="fas fa-tasks"></i> Par statut</h3>
+    <div class="bar-chart">
+      @for (item of stats()?.byStatus || []; track item.status) {
+        <div class="bar-row">
+          <span class="bar-label">{{ formatStatus(item.status) }}</span>
+          <div class="bar-container">
+            <div class="bar" [class]="item.status" [style.width.%]="getPercentage(item.count)"></div>
+          </div>
+          <span class="bar-value">{{ item.count }}</span>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h3><i class="fas fa-stopwatch"></i> Temps total</h3>
+  <div class="time-stats">
+    <div class="time-stat">
+      <span class="time-label">Temps estime</span>
+      <span class="time-value">{{ formatMinutes(totalEstimated()) }}</span>
+    </div>
+    <div class="time-stat">
+      <span class="time-label">Temps passe</span>
+      <span class="time-value">{{ formatMinutes(totalSpent()) }}</span>
+    </div>
+    <div class="time-stat">
+      <span class="time-label">Efficacite</span>
+      <span class="time-value" [class.over]="efficiency() > 100">{{ efficiency().toFixed(0) }}%</span>
+    </div>
+  </div>
+  <div class="progress-container large">
+    <div class="progress-bar" [class.over]="efficiency() > 100" [style.width.%]="Math.min(efficiency(), 100)"></div>
+  </div>
+</div>
