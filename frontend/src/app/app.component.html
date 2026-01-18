@@ -1,0 +1,391 @@
+<div class="app" [class.light]="lightMode()" [class.sidebar-collapsed]="sidebarCollapsed()" [attr.data-accent]="accentColor()">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" [class.collapsed]="sidebarCollapsed()" [class.mobile-open]="mobileMenuOpen()">
+    <div class="sidebar-header">
+      <div class="logo" routerLink="/dashboard">
+        <i class="fas fa-tasks"></i>
+        <span class="logo-text">TaskFlow</span>
+      </div>
+      <button class="collapse-btn" (click)="toggleSidebar()">
+        <i class="fas" [class.fa-chevron-left]="!sidebarCollapsed()" [class.fa-chevron-right]="sidebarCollapsed()"></i>
+      </button>
+    </div>
+
+    <!-- Project Selector -->
+    <div class="sidebar-section">
+      <div class="project-selector" (click)="projectDropdownOpen.set(!projectDropdownOpen())">
+        <i class="fas" [class]="currentProject()?.icon || 'fa-layer-group'" [style.color]="currentProject()?.color || 'var(--accent)'"></i>
+        <span class="project-name">{{ currentProject()?.name || 'Tous les projets' }}</span>
+        <i class="fas fa-chevron-down chevron"></i>
+      </div>
+      @if (projectDropdownOpen()) {
+        <div class="project-dropdown">
+          <div class="dropdown-item" [class.active]="!currentProjectId()" (click)="selectProject(null)">
+            <i class="fas fa-layer-group"></i>
+            <span>Tous les projets</span>
+          </div>
+          @for (project of projects(); track project.id) {
+            <div class="dropdown-item" [class.active]="currentProjectId() === project.id" (click)="selectProject(project)">
+              <i class="fas" [class]="project.icon" [style.color]="project.color"></i>
+              <span>{{ project.name }}</span>
+              <span class="count">{{ project.ticket_count || 0 }}</span>
+            </div>
+          }
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-item manage" routerLink="/projects" (click)="projectDropdownOpen.set(false)">
+            <i class="fas fa-cog"></i>
+            <span>Gerer les projets</span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Search -->
+    <div class="sidebar-search" (click)="openSearchModal()">
+      <i class="fas fa-search"></i>
+      <span>Rechercher...</span>
+      <kbd>Ctrl+K</kbd>
+    </div>
+
+    <!-- Main Navigation -->
+    <nav class="sidebar-nav">
+      <div class="nav-group">
+        <a routerLink="/dashboard" routerLinkActive="active">
+          <i class="fas fa-home"></i>
+          <span>Accueil</span>
+        </a>
+        <a routerLink="/kanban" routerLinkActive="active">
+          <i class="fas fa-columns"></i>
+          <span>Kanban</span>
+        </a>
+        <a routerLink="/list" routerLinkActive="active">
+          <i class="fas fa-list"></i>
+          <span>Liste</span>
+        </a>
+        <a routerLink="/calendar" routerLinkActive="active">
+          <i class="fas fa-calendar-alt"></i>
+          <span>Calendrier</span>
+        </a>
+        <a routerLink="/gantt" routerLinkActive="active">
+          <i class="fas fa-bars-staggered"></i>
+          <span>Gantt</span>
+        </a>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">Projets</div>
+        <a routerLink="/projects" routerLinkActive="active">
+          <i class="fas fa-folder-open"></i>
+          <span>Gestion Projets</span>
+        </a>
+        <a routerLink="/projects-dashboard" routerLinkActive="active">
+          <i class="fas fa-th-large"></i>
+          <span>Vue d'ensemble</span>
+        </a>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">Outils</div>
+        <a [routerLink]="getWhiteboardLink()" routerLinkActive="active" [class.disabled]="!currentProjectId()">
+          <i class="fas fa-chalkboard"></i>
+          <span>Whiteboard</span>
+        </a>
+        <a routerLink="/stats" routerLinkActive="active">
+          <i class="fas fa-chart-pie"></i>
+          <span>Statistiques</span>
+        </a>
+        <a routerLink="/templates" routerLinkActive="active">
+          <i class="fas fa-clone"></i>
+          <span>Templates</span>
+        </a>
+        <a routerLink="/reminders" routerLinkActive="active">
+          <i class="fas fa-bell"></i>
+          <span>Rappels</span>
+          @if (reminderCount() > 0) {
+            <span class="nav-badge">{{ reminderCount() }}</span>
+          }
+        </a>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">Planification</div>
+        <a routerLink="/backlog" routerLinkActive="active">
+          <i class="fas fa-inbox"></i>
+          <span>Backlog</span>
+        </a>
+        <a routerLink="/epics" routerLinkActive="active">
+          <i class="fas fa-flag"></i>
+          <span>Epics</span>
+        </a>
+        <a routerLink="/sprints" routerLinkActive="active">
+          <i class="fas fa-rocket"></i>
+          <span>Sprints</span>
+        </a>
+        <a routerLink="/milestones" routerLinkActive="active">
+          <i class="fas fa-map-pin"></i>
+          <span>Milestones</span>
+        </a>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">Archives</div>
+        <a routerLink="/history" routerLinkActive="active">
+          <i class="fas fa-history"></i>
+          <span>Historique</span>
+        </a>
+        <a routerLink="/archives" routerLinkActive="active">
+          <i class="fas fa-archive"></i>
+          <span>Archives</span>
+        </a>
+      </div>
+    </nav>
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer">
+      <button class="footer-btn" (click)="openSettingsModal()" title="Parametres">
+        <i class="fas fa-cog"></i>
+        <span>Parametres</span>
+      </button>
+      <button class="footer-btn" (click)="toggleLightMode()" title="Theme">
+        <i class="fas" [class.fa-moon]="lightMode()" [class.fa-sun]="!lightMode()"></i>
+        <span>{{ lightMode() ? 'Sombre' : 'Clair' }}</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-wrapper">
+    <!-- Top Bar -->
+    <header class="topbar">
+      <button class="mobile-menu-btn" (click)="mobileMenuOpen.set(!mobileMenuOpen())">
+        <i class="fas fa-bars"></i>
+      </button>
+
+      <div class="topbar-search" (click)="openSearchModal()">
+        <i class="fas fa-search"></i>
+        <input type="text" placeholder="Rechercher..." readonly>
+      </div>
+
+      <div class="topbar-actions">
+        <button class="action-btn undo-btn" [disabled]="!undoService.canUndo()" (click)="performUndo()" [title]="'Annuler: ' + undoService.getLastUndoDescription()">
+          <i class="fas fa-undo"></i>
+        </button>
+        <button class="action-btn redo-btn" [disabled]="!undoService.canRedo()" (click)="performRedo()" [title]="'Refaire: ' + undoService.getLastRedoDescription()">
+          <i class="fas fa-redo"></i>
+        </button>
+        <button class="action-btn" routerLink="/reminders" title="Rappels">
+          <i class="fas fa-bell"></i>
+          @if (reminderCount() > 0) {
+            <span class="action-badge">{{ reminderCount() }}</span>
+          }
+        </button>
+        <button class="action-btn add-btn" (click)="quickAdd()" title="Nouveau ticket">
+          <i class="fas fa-plus"></i>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+
+  <!-- MOBILE SIDEBAR OVERLAY -->
+  @if (mobileMenuOpen()) {
+    <div class="mobile-overlay" (click)="mobileMenuOpen.set(false)"></div>
+  }
+
+  <!-- MOBILE BOTTOM NAV -->
+  <nav class="mobile-bottom-nav">
+    <a routerLink="/dashboard" routerLinkActive="active">
+      <i class="fas fa-home"></i>
+    </a>
+    <a routerLink="/kanban" routerLinkActive="active">
+      <i class="fas fa-columns"></i>
+    </a>
+    <button class="fab-center" (click)="quickAdd()">
+      <i class="fas fa-plus"></i>
+    </button>
+    <a routerLink="/calendar" routerLinkActive="active">
+      <i class="fas fa-calendar-alt"></i>
+    </a>
+    <a routerLink="/reminders" routerLinkActive="active">
+      <i class="fas fa-bell"></i>
+      @if (reminderCount() > 0) {
+        <span class="badge">{{ reminderCount() }}</span>
+      }
+    </a>
+  </nav>
+
+
+  <!-- Hidden file input -->
+  <input type="file" #fileInput style="display:none" accept=".json" (change)="importFile($event)">
+
+  <!-- SEARCH MODAL -->
+  @if (searchModalOpen()) {
+    <div class="modal-overlay" (click)="closeSearchModal()">
+      <div class="search-modal" (click)="$event.stopPropagation()">
+        <div class="search-input-wrapper">
+          @if (searchLoading()) {
+            <i class="fas fa-spinner fa-spin"></i>
+          } @else {
+            <i class="fas fa-search"></i>
+          }
+          <input type="text" [(ngModel)]="advSearch.query" placeholder="Rechercher des tickets..." autofocus (input)="onSearchInput($event)" (keyup.enter)="executeAdvSearch()">
+          <kbd>ESC</kbd>
+        </div>
+
+        <div class="search-filters">
+          <div class="filter-group">
+            <span class="filter-label">Statut:</span>
+            <label class="filter-chip" [class.active]="advSearch.statusTodo">
+              <input type="checkbox" [(ngModel)]="advSearch.statusTodo"> A faire
+            </label>
+            <label class="filter-chip" [class.active]="advSearch.statusInProgress">
+              <input type="checkbox" [(ngModel)]="advSearch.statusInProgress"> En cours
+            </label>
+            <label class="filter-chip" [class.active]="advSearch.statusDone">
+              <input type="checkbox" [(ngModel)]="advSearch.statusDone"> Termine
+            </label>
+          </div>
+          <div class="filter-group">
+            <span class="filter-label">Priorite:</span>
+            <label class="filter-chip do" [class.active]="advSearch.priorityDo">
+              <input type="checkbox" [(ngModel)]="advSearch.priorityDo"> Faire
+            </label>
+            <label class="filter-chip plan" [class.active]="advSearch.priorityPlan">
+              <input type="checkbox" [(ngModel)]="advSearch.priorityPlan"> Planifier
+            </label>
+            <label class="filter-chip delegate" [class.active]="advSearch.priorityDelegate">
+              <input type="checkbox" [(ngModel)]="advSearch.priorityDelegate"> Deleguer
+            </label>
+            <label class="filter-chip eliminate" [class.active]="advSearch.priorityEliminate">
+              <input type="checkbox" [(ngModel)]="advSearch.priorityEliminate"> Eliminer
+            </label>
+          </div>
+          <div class="filter-row">
+            <label class="filter-chip" [class.active]="advSearch.pinnedOnly">
+              <input type="checkbox" [(ngModel)]="advSearch.pinnedOnly">
+              <i class="fas fa-star"></i> Favoris uniquement
+            </label>
+            <button class="search-btn" (click)="executeAdvSearch()">
+              <i class="fas fa-search"></i> Rechercher
+            </button>
+          </div>
+        </div>
+
+        @if (searchResults().length > 0) {
+          <div class="search-results">
+            @for (ticket of searchResults(); track ticket.id) {
+              <div class="result-item" (click)="openSearchResult(ticket)">
+                <span class="result-priority" [class]="ticket.priority"></span>
+                <span class="result-title">{{ ticket.title }}</span>
+                <span class="result-status" [class]="ticket.status">{{ getStatusLabel(ticket.status) }}</span>
+                <i class="fas fa-arrow-right"></i>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- TOAST NOTIFICATIONS -->
+  <div class="toast-container">
+    @for (toast of toastService.toasts(); track toast.id) {
+      <div class="toast" [class]="toast.type" (click)="toastService.remove(toast.id)">
+        <i class="fas" [class.fa-check-circle]="toast.type === 'success'"
+           [class.fa-exclamation-circle]="toast.type === 'error'"
+           [class.fa-exclamation-triangle]="toast.type === 'warning'"
+           [class.fa-info-circle]="toast.type === 'info'"></i>
+        <span>{{ toast.message }}</span>
+        <button class="toast-close"><i class="fas fa-times"></i></button>
+      </div>
+    }
+  </div>
+
+  <!-- SETTINGS MODAL -->
+  @if (settingsModalOpen()) {
+    <div class="modal-overlay" (click)="closeSettingsModal()">
+      <div class="settings-modal" (click)="$event.stopPropagation()">
+        <div class="settings-header">
+          <h3><i class="fas fa-cog"></i> Parametres</h3>
+          <button (click)="closeSettingsModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="settings-body">
+          <!-- Import/Export Section -->
+          <div class="settings-section">
+            <h4><i class="fas fa-file-alt"></i> Donnees</h4>
+            <div class="settings-row">
+              <button class="settings-btn" (click)="triggerImport()">
+                <i class="fas fa-file-import"></i> Importer JSON
+              </button>
+              <button class="settings-btn" (click)="exportData('json')">
+                <i class="fas fa-file-code"></i> Exporter JSON
+              </button>
+              <button class="settings-btn" (click)="exportData('csv')">
+                <i class="fas fa-file-csv"></i> Exporter CSV
+              </button>
+            </div>
+          </div>
+
+          <!-- Auto-Archive Section -->
+          <div class="settings-section">
+            <h4><i class="fas fa-archive"></i> Auto-archivage</h4>
+            <div class="settings-option">
+              <label class="toggle-switch">
+                <input type="checkbox" [checked]="settings()['auto_archive_enabled'] === 'true'" (change)="toggleAutoArchive($event)">
+                <span class="toggle-slider"></span>
+              </label>
+              <span>Archiver automatiquement les tickets termines</span>
+            </div>
+            @if (settings()['auto_archive_enabled'] === 'true') {
+              <div class="settings-option indent">
+                <span>Apres</span>
+                <select [value]="settings()['auto_archive_days'] || '7'" (change)="setAutoArchiveDays($event)">
+                  <option value="1">1 jour</option>
+                  <option value="3">3 jours</option>
+                  <option value="7">7 jours</option>
+                  <option value="14">14 jours</option>
+                  <option value="30">30 jours</option>
+                </select>
+              </div>
+              <button class="settings-btn accent" (click)="runAutoArchive()">
+                <i class="fas fa-play"></i> Archiver maintenant
+              </button>
+            }
+          </div>
+
+          <!-- Appearance Section -->
+          <div class="settings-section">
+            <h4><i class="fas fa-palette"></i> Apparence</h4>
+            <div class="settings-option">
+              <label class="toggle-switch">
+                <input type="checkbox" [checked]="lightMode()" (change)="toggleLightMode()">
+                <span class="toggle-slider"></span>
+              </label>
+              <span>Mode clair</span>
+            </div>
+            <div class="settings-option">
+              <span class="accent-label">Couleur d'accent</span>
+            </div>
+            <div class="accent-colors">
+              @for (color of accentColors; track color.id) {
+                <button
+                  class="accent-btn"
+                  [class.active]="accentColor() === color.id"
+                  [style.background]="color.color"
+                  (click)="setAccentColor(color.id)"
+                  [title]="color.name">
+                  @if (accentColor() === color.id) {
+                    <i class="fas fa-check"></i>
+                  }
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

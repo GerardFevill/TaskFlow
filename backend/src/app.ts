@@ -43,8 +43,9 @@ export function createApp() {
   }));
 
   // CORS
+  const allowedOrigins = env.CORS_ORIGIN.split(',').map(o => o.trim());
   app.use(cors({
-    origin: env.CORS_ORIGIN,
+    origin: allowedOrigins.length === 1 ? allowedOrigins[0] : allowedOrigins,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
   }));

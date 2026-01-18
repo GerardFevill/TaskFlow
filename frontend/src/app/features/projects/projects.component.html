@@ -82,13 +82,16 @@
         </div>
         <div class="card-actions">
           <button class="btn-view" (click)="viewProject(project)">
-            <i class="fas fa-eye"></i> Voir
+            <i class="fas fa-eye"></i> Kanban
+          </button>
+          <button class="btn-detail" (click)="openProjectDetail(project)" title="Gestion de projet">
+            <i class="fas fa-project-diagram"></i> Gerer
           </button>
           <button class="btn-whiteboard" (click)="openWhiteboard(project)" title="Tableau blanc">
             <i class="fas fa-chalkboard"></i>
           </button>
           <button class="btn-edit" (click)="startEdit(project)">
-            <i class="fas fa-pen"></i> Modifier
+            <i class="fas fa-pen"></i>
           </button>
           @if (project.id !== 1) {
             <button class="btn-transform" (click)="convertToTicket(project)" title="Convertir en ticket">

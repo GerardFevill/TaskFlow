@@ -70,8 +70,60 @@ async function initDB(retries = 10) {
                     color VARCHAR(7) DEFAULT '#6c5ce7',
                     icon VARCHAR(50) DEFAULT 'fa-folder',
                     archived BOOLEAN DEFAULT FALSE,
-                    created_at TIMESTAMP DEFAULT NOW()
+                    created_at TIMESTAMP DEFAULT NOW(),
+                    -- Nouveaux champs gestion de projet
+                    objective TEXT DEFAULT '',
+                    start_date DATE,
+                    end_date DATE,
+                    status VARCHAR(20) DEFAULT 'planning',
+                    budget DECIMAL(12,2) DEFAULT 0,
+                    budget_spent DECIMAL(12,2) DEFAULT 0,
+                    success_criteria TEXT DEFAULT '',
+                    constraints TEXT DEFAULT '',
+                    deliverables JSONB DEFAULT '[]',
+                    resources JSONB DEFAULT '[]',
+                    risks JSONB DEFAULT '[]'
                 )
+            `);
+
+            // Migration: ajouter les nouveaux champs si table existe deja
+            await pool.query(`
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='projects' AND column_name='objective') THEN
+                        ALTER TABLE projects ADD COLUMN objective TEXT DEFAULT '';
+                    END IF;
+                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='projects' AND column_name='start_date') THEN
+                        ALTER TABLE projects ADD COLUMN start_date DATE;
+                    END IF;
+                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='projects' AND column_name='end_date') THEN
+                        ALTER TABLE projects ADD COLUMN end_date DATE;
+                    END IF;
+                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='projects' AND column_name='status') THEN
+                        ALTER TABLE projects ADD COLUMN status VARCHAR(20) DEFAULT 'planning';
+                    END IF;
+                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='projects' AND column_name='budget') THEN
+                        ALTER TABLE projects ADD COLUMN budget DECIMAL(12,2) DEFAULT 0;
+                    END IF;
+                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='projects' AND column_name='budget_spent') THEN
+                        ALTER TABLE projects ADD COLUMN budget_spent DECIMAL(12,2) DEFAULT 0;
+                    END IF;
+                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='projects' AND column_name='success_criteria') THEN
+                        ALTER TABLE projects ADD COLUMN success_criteria TEXT DEFAULT '';
+                    END IF;
+                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='projects' AND column_name='constraints') THEN
+                        ALTER TABLE projects ADD COLUMN constraints TEXT DEFAULT '';
+                    END IF;
+                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='projects' AND column_name='deliverables') THEN
+                        ALTER TABLE projects ADD COLUMN deliverables JSONB DEFAULT '[]';
+                    END IF;
+                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='projects' AND column_name='resources') THEN
+                        ALTER TABLE projects ADD COLUMN resources JSONB DEFAULT '[]';
+                    END IF;
+                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='projects' AND column_name='risks') THEN
+                        ALTER TABLE projects ADD COLUMN risks JSONB DEFAULT '[]';
+                    END IF;
+                END $$;
             `);
 
             // Projet par défaut "Inbox"
@@ -174,6 +226,17 @@ async function initDB(retries = 10) {
                     text TEXT NOT NULL,
                     created_at TIMESTAMP DEFAULT NOW(),
                     ticket_id INTEGER REFERENCES tickets(id) ON DELETE CASCADE
+                )
+            `);
+
+            // Table comment_reactions (pour reactions emoji)
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS comment_reactions (
+                    id SERIAL PRIMARY KEY,
+                    comment_id INTEGER REFERENCES comments(id) ON DELETE CASCADE,
+                    emoji VARCHAR(10) NOT NULL,
+                    created_at TIMESTAMP DEFAULT NOW(),
+                    UNIQUE(comment_id, emoji)
                 )
             `);
 
@@ -455,10 +518,35 @@ app.get('/api/projects/:id', async (req, res) => {
 
 // POST - Créer un projet
 app.post('/api/projects', async (req, res) => {
-    const { name, description, color, icon } = req.body;
+    const {
+        name, description, color, icon,
+        objective, start_date, end_date, status,
+        budget, success_criteria, constraints,
+        deliverables, resources, risks
+    } = req.body;
     const result = await pool.query(
-        'INSERT INTO projects (name, description, color, icon) VALUES ($1, $2, $3, $4) RETURNING *',
-        [name, description || '', color || '#6c5ce7', icon || 'fa-folder']
+        `INSERT INTO projects (
+            name, description, color, icon,
+            objective, start_date, end_date, status,
+            budget, success_criteria, constraints,
+            deliverables, resources, risks
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *`,
+        [
+            name,
+            description || '',
+            color || '#6c5ce7',
+            icon || 'fa-folder',
+            objective || '',
+            start_date || null,
+            end_date || null,
+            status || 'planning',
+            budget || 0,
+            success_criteria || '',
+            constraints || '',
+            JSON.stringify(deliverables || []),
+            JSON.stringify(resources || []),
+            JSON.stringify(risks || [])
+        ]
     );
     res.json(result.rows[0]);
 });
@@ -466,17 +554,54 @@ app.post('/api/projects', async (req, res) => {
 // PUT - Modifier un projet
 app.put('/api/projects/:id', async (req, res) => {
     const { id } = req.params;
-    const { name, description, color, icon, archived } = req.body;
+    const {
+        name, description, color, icon, archived,
+        objective, start_date, end_date, status,
+        budget, budget_spent, success_criteria, constraints,
+        deliverables, resources, risks
+    } = req.body;
+
+    // Build dynamic update query
+    const updates = [];
+    const values = [];
+    let paramIndex = 1;
+
+    const addField = (field, value) => {
+        if (value !== undefined) {
+            updates.push(`${field} = $${paramIndex}`);
+            values.push(field.includes('deliverables') || field.includes('resources') || field.includes('risks')
+                ? JSON.stringify(value) : value);
+            paramIndex++;
+        }
+    };
+
+    addField('name', name);
+    addField('description', description);
+    addField('color', color);
+    addField('icon', icon);
+    addField('archived', archived);
+    addField('objective', objective);
+    addField('start_date', start_date);
+    addField('end_date', end_date);
+    addField('status', status);
+    addField('budget', budget);
+    addField('budget_spent', budget_spent);
+    addField('success_criteria', success_criteria);
+    addField('constraints', constraints);
+    addField('deliverables', deliverables);
+    addField('resources', resources);
+    addField('risks', risks);
+
+    if (updates.length === 0) {
+        return res.status(400).json({ error: 'Aucun champ a mettre a jour' });
+    }
+
+    values.push(id);
     const result = await pool.query(
-        `UPDATE projects SET
-            name = COALESCE($1, name),
-            description = COALESCE($2, description),
-            color = COALESCE($3, color),
-            icon = COALESCE($4, icon),
-            archived = COALESCE($5, archived)
-        WHERE id = $6 RETURNING *`,
-        [name, description, color, icon, archived, id]
+        `UPDATE projects SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
+        values
     );
+
     if (result.rows.length === 0) {
         return res.status(404).json({ error: 'Projet non trouvé' });
     }
@@ -1109,11 +1234,22 @@ app.delete('/api/tickets/:ticketId/labels/:labelId', async (req, res) => {
 
 // ============ COMMENTS ============
 
-// GET - Commentaires d'un ticket
+// GET - Commentaires d'un ticket (avec reactions)
 app.get('/api/tickets/:id/comments', async (req, res) => {
     const { id } = req.params;
-    const result = await pool.query('SELECT * FROM comments WHERE ticket_id = $1 ORDER BY created_at DESC', [id]);
-    res.json(result.rows);
+    const commentsResult = await pool.query('SELECT * FROM comments WHERE ticket_id = $1 ORDER BY created_at DESC', [id]);
+    const comments = commentsResult.rows;
+
+    // Charger les reactions pour chaque commentaire
+    for (const comment of comments) {
+        const reactionsResult = await pool.query(
+            'SELECT emoji, COUNT(*) as count FROM comment_reactions WHERE comment_id = $1 GROUP BY emoji',
+            [comment.id]
+        );
+        comment.reactions = reactionsResult.rows.map(r => ({ emoji: r.emoji, count: parseInt(r.count) }));
+    }
+
+    res.json(comments);
 });
 
 // POST - Ajouter un commentaire
@@ -1123,13 +1259,59 @@ app.post('/api/comments', async (req, res) => {
         'INSERT INTO comments (text, ticket_id) VALUES ($1, $2) RETURNING *',
         [text, ticket_id]
     );
-    res.json(result.rows[0]);
+    const comment = result.rows[0];
+    comment.reactions = [];
+    res.json(comment);
 });
 
 // DELETE - Supprimer un commentaire
 app.delete('/api/comments/:id', async (req, res) => {
     const { id } = req.params;
     await pool.query('DELETE FROM comments WHERE id = $1', [id]);
+    res.json({ success: true });
+});
+
+// ============ COMMENT REACTIONS ============
+
+// GET - Reactions d'un commentaire
+app.get('/api/comments/:id/reactions', async (req, res) => {
+    const { id } = req.params;
+    const result = await pool.query(
+        'SELECT emoji, COUNT(*) as count FROM comment_reactions WHERE comment_id = $1 GROUP BY emoji',
+        [id]
+    );
+    res.json(result.rows.map(r => ({ emoji: r.emoji, count: parseInt(r.count) })));
+});
+
+// POST - Ajouter/Toggle une reaction
+app.post('/api/comments/:id/reactions', async (req, res) => {
+    const { id } = req.params;
+    const { emoji } = req.body;
+
+    // Verifier si la reaction existe deja
+    const existing = await pool.query(
+        'SELECT id FROM comment_reactions WHERE comment_id = $1 AND emoji = $2',
+        [id, emoji]
+    );
+
+    if (existing.rows.length > 0) {
+        // Supprimer si existe (toggle off)
+        await pool.query('DELETE FROM comment_reactions WHERE comment_id = $1 AND emoji = $2', [id, emoji]);
+        res.json({ action: 'removed', emoji });
+    } else {
+        // Ajouter si n'existe pas (toggle on)
+        await pool.query(
+            'INSERT INTO comment_reactions (comment_id, emoji) VALUES ($1, $2)',
+            [id, emoji]
+        );
+        res.json({ action: 'added', emoji });
+    }
+});
+
+// DELETE - Supprimer une reaction specifique
+app.delete('/api/comments/:id/reactions/:emoji', async (req, res) => {
+    const { id, emoji } = req.params;
+    await pool.query('DELETE FROM comment_reactions WHERE comment_id = $1 AND emoji = $2', [id, emoji]);
     res.json({ success: true });
 });
 
@@ -1426,6 +1608,115 @@ app.get('/api/stats', async (req, res) => {
         byPriority: byPriority.rows,
         overdue: parseInt(overdue.rows[0].count),
         completedThisWeek: parseInt(completedThisWeek.rows[0].count)
+    });
+});
+
+// GET - Statistiques de productivite (8 dernieres semaines)
+app.get('/api/stats/productivity', async (req, res) => {
+    const projectId = req.query.project_id;
+
+    let projectFilter = '';
+    const params = [];
+
+    if (projectId) {
+        projectFilter = ' AND project_id = $1';
+        params.push(projectId);
+    }
+
+    // Tickets crees par semaine (8 dernieres semaines)
+    const created = await pool.query(`
+        SELECT
+            DATE_TRUNC('week', created_at) as week,
+            COUNT(*) as count
+        FROM tickets
+        WHERE created_at >= NOW() - INTERVAL '8 weeks'
+        ${projectFilter}
+        GROUP BY DATE_TRUNC('week', created_at)
+        ORDER BY week
+    `, params);
+
+    // Tickets completes par semaine (via activity_log)
+    const completed = await pool.query(`
+        SELECT
+            DATE_TRUNC('week', created_at) as week,
+            COUNT(*) as count
+        FROM activity_log
+        WHERE action = 'status_changed'
+            AND new_value = 'done'
+            AND created_at >= NOW() - INTERVAL '8 weeks'
+            ${projectId ? `AND ticket_id IN (SELECT id FROM tickets WHERE project_id = $1)` : ''}
+        GROUP BY DATE_TRUNC('week', created_at)
+        ORDER BY week
+    `, params);
+
+    // Generer les 8 dernieres semaines
+    const weeks = [];
+    for (let i = 7; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - (i * 7));
+        const weekStart = new Date(date);
+        weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1);
+        weeks.push({
+            week: weekStart.toISOString().split('T')[0],
+            label: `S${Math.ceil((weekStart.getDate() + (new Date(weekStart.getFullYear(), 0, 1).getDay())) / 7)}`
+        });
+    }
+
+    // Mapper les donnees aux semaines
+    const result = weeks.map(w => {
+        const createdItem = created.rows.find(r => r.week && r.week.toISOString().split('T')[0] === w.week);
+        const completedItem = completed.rows.find(r => r.week && r.week.toISOString().split('T')[0] === w.week);
+        return {
+            week: w.week,
+            label: w.label,
+            created: createdItem ? parseInt(createdItem.count) : 0,
+            completed: completedItem ? parseInt(completedItem.count) : 0
+        };
+    });
+
+    res.json(result);
+});
+
+// GET - Distribution par statut et priorite (pour pie charts)
+app.get('/api/stats/distribution', async (req, res) => {
+    const projectId = req.query.project_id;
+
+    let projectFilter = '';
+    const params = [];
+
+    if (projectId) {
+        projectFilter = ' AND project_id = $1';
+        params.push(projectId);
+    }
+
+    const byStatus = await pool.query(`
+        SELECT status, COUNT(*) as count
+        FROM tickets
+        WHERE NOT archived ${projectFilter}
+        GROUP BY status
+    `, params);
+
+    const byPriority = await pool.query(`
+        SELECT priority, COUNT(*) as count
+        FROM tickets
+        WHERE NOT archived ${projectFilter}
+        GROUP BY priority
+    `, params);
+
+    const total = byStatus.rows.reduce((sum, r) => sum + parseInt(r.count), 0);
+
+    res.json({
+        byStatus: byStatus.rows.map(r => ({
+            status: r.status,
+            count: parseInt(r.count),
+            percentage: total > 0 ? Math.round((parseInt(r.count) / total) * 100) : 0
+        })),
+        byPriority: byPriority.rows.map(r => ({
+            priority: r.priority,
+            count: parseInt(r.count),
+            percentage: total > 0 ? Math.round((parseInt(r.count) / total) * 100) : 0
+        })),
+        total
     });
 });
 

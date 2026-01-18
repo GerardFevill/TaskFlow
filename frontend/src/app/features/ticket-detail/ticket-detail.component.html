@@ -246,9 +246,17 @@
 
       <div class="card">
         <h3><i class="fas fa-comments"></i> Commentaires</h3>
-        <div class="form-row">
-          <input [(ngModel)]="newComment" placeholder="Ajouter un commentaire..." (keyup.enter)="addComment()">
-          <button class="btn" (click)="addComment()"><i class="fas fa-check"></i> Valider</button>
+        <div class="comment-input-wrapper">
+          <textarea
+            [(ngModel)]="newComment"
+            placeholder="Ajouter un commentaire... (Markdown supporte: **gras**, *italique*, `code`, @mention)"
+            rows="2"
+            class="comment-input"
+            (keydown.ctrl.enter)="addComment()"></textarea>
+          <div class="comment-input-footer">
+            <span class="markdown-hint">Ctrl+Enter pour envoyer</span>
+            <button class="btn" (click)="addComment()"><i class="fas fa-paper-plane"></i> Envoyer</button>
+          </div>
         </div>
         <div class="comments-list">
           @for (comment of comments(); track comment.id) {
@@ -257,7 +265,28 @@
                 <span class="comment-date">{{ formatDateTime(comment.created_at) }}</span>
                 <button class="delete-btn" (click)="deleteComment(comment)"><i class="fas fa-trash"></i></button>
               </div>
-              <p>{{ comment.text }}</p>
+              <div class="comment-text" [innerHTML]="comment.text | markdown"></div>
+              <div class="comment-reactions">
+                @for (reaction of comment.reactions || []; track reaction.emoji) {
+                  <button class="reaction-btn active" (click)="addReaction(comment, reaction.emoji)">
+                    {{ reaction.emoji }} {{ reaction.count }}
+                  </button>
+                }
+                <div class="emoji-picker-wrapper">
+                  <button class="add-reaction-btn" (click)="toggleEmojiPicker(comment.id)">
+                    <i class="fas fa-smile-plus"></i>
+                  </button>
+                  @if (emojiPickerOpen() === comment.id) {
+                    <div class="emoji-picker">
+                      @for (emoji of availableEmojis; track emoji) {
+                        <button class="emoji-btn" [class.selected]="hasReaction(comment, emoji)" (click)="addReaction(comment, emoji)">
+                          {{ emoji }}
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
             </div>
           }
         </div>

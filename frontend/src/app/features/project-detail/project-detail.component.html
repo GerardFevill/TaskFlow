@@ -1,0 +1,394 @@
+@if (project()) {
+  <div class="project-header">
+    <button class="back-btn" (click)="goBack()">
+      <i class="fas fa-arrow-left"></i>
+    </button>
+    <div class="project-icon" [style.background]="project()!.color">
+      <i class="fas" [class]="project()!.icon"></i>
+    </div>
+    <div class="project-info">
+      <h2>{{ project()!.name }}</h2>
+      <div class="project-status">
+        <span class="status-badge" [style.background]="getStatusInfo(project()!.status || 'planning').color">
+          {{ getStatusInfo(project()!.status || 'planning').label }}
+        </span>
+        @if (getDaysRemaining() !== null) {
+          <span class="days-remaining" [class.overdue]="getDaysRemaining()! < 0">
+            @if (getDaysRemaining()! >= 0) {
+              <i class="fas fa-clock"></i> {{ getDaysRemaining() }} jours restants
+            } @else {
+              <i class="fas fa-exclamation-triangle"></i> {{ Math.abs(getDaysRemaining()!) }} jours de retard
+            }
+          </span>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button [class.active]="tab() === 'overview'" (click)="tab.set('overview')">
+      <i class="fas fa-info-circle"></i> Vue d'ensemble
+    </button>
+    <button [class.active]="tab() === 'deliverables'" (click)="tab.set('deliverables')">
+      <i class="fas fa-box"></i> Livrables ({{ project()!.deliverables?.length || 0 }})
+    </button>
+    <button [class.active]="tab() === 'resources'" (click)="tab.set('resources')">
+      <i class="fas fa-users"></i> Ressources ({{ project()!.resources?.length || 0 }})
+    </button>
+    <button [class.active]="tab() === 'risks'" (click)="tab.set('risks')">
+      <i class="fas fa-exclamation-triangle"></i> Risques ({{ getActiveRisksCount() }})
+    </button>
+    <button [class.active]="tab() === 'budget'" (click)="tab.set('budget')">
+      <i class="fas fa-euro-sign"></i> Budget
+    </button>
+  </div>
+
+  <div class="tab-content">
+    <!-- Overview Tab -->
+    @if (tab() === 'overview') {
+      <div class="overview-grid">
+        <div class="card">
+          <h3><i class="fas fa-bullseye"></i> Objectif</h3>
+          <textarea
+            [(ngModel)]="project()!.objective"
+            (blur)="updateProject()"
+            placeholder="Definir l'objectif principal du projet..."
+            rows="4"></textarea>
+        </div>
+
+        <div class="card">
+          <h3><i class="fas fa-calendar"></i> Temporalite</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Date de debut</label>
+              <input type="date" [(ngModel)]="project()!.start_date" (change)="updateProject()">
+            </div>
+            <div class="form-group">
+              <label>Date de fin</label>
+              <input type="date" [(ngModel)]="project()!.end_date" (change)="updateProject()">
+            </div>
+          </div>
+          @if (project()!.start_date && project()!.end_date) {
+            <div class="progress-section">
+              <div class="progress-bar-container">
+                <div class="progress-bar" [style.width.%]="getTimelineProgress()"></div>
+              </div>
+              <span class="progress-label">{{ getTimelineProgress().toFixed(0) }}% du temps ecoule</span>
+            </div>
+          }
+        </div>
+
+        <div class="card">
+          <h3><i class="fas fa-flag-checkered"></i> Statut</h3>
+          <div class="status-options">
+            @for (status of statusOptions; track status.value) {
+              <button
+                class="status-btn"
+                [class.active]="project()!.status === status.value"
+                [style.--status-color]="status.color"
+                (click)="setStatus(status.value)">
+                {{ status.label }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="card">
+          <h3><i class="fas fa-check-circle"></i> Criteres de succes</h3>
+          <textarea
+            [(ngModel)]="project()!.success_criteria"
+            (blur)="updateProject()"
+            placeholder="Definir les criteres de succes mesurables..."
+            rows="4"></textarea>
+        </div>
+
+        <div class="card">
+          <h3><i class="fas fa-lock"></i> Contraintes</h3>
+          <textarea
+            [(ngModel)]="project()!.constraints"
+            (blur)="updateProject()"
+            placeholder="Lister les contraintes du projet..."
+            rows="4"></textarea>
+        </div>
+
+        <div class="card stats-summary">
+          <h3><i class="fas fa-chart-pie"></i> Resume</h3>
+          <div class="summary-grid">
+            <div class="summary-item">
+              <span class="summary-value">{{ project()!.ticket_count || 0 }}</span>
+              <span class="summary-label">Tickets</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-value">{{ project()!.deliverables?.length || 0 }}</span>
+              <span class="summary-label">Livrables</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-value">{{ project()!.resources?.length || 0 }}</span>
+              <span class="summary-label">Ressources</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-value" [class.warning]="getActiveRisksCount() > 0">{{ getActiveRisksCount() }}</span>
+              <span class="summary-label">Risques actifs</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Deliverables Tab -->
+    @if (tab() === 'deliverables') {
+      <div class="card">
+        <div class="section-header">
+          <h3><i class="fas fa-box"></i> Livrables</h3>
+          <div class="progress-mini">
+            {{ getDeliverableProgress().toFixed(0) }}% complete
+          </div>
+        </div>
+
+        <div class="add-form">
+          <input
+            type="text"
+            [(ngModel)]="newDeliverable.name"
+            placeholder="Nom du livrable..."
+            (keyup.enter)="addDeliverable()">
+          <input
+            type="date"
+            [(ngModel)]="newDeliverable.due_date"
+            placeholder="Echeance">
+          <button class="btn-primary" (click)="addDeliverable()">
+            <i class="fas fa-plus"></i> Ajouter
+          </button>
+        </div>
+
+        <div class="items-list">
+          @for (d of project()!.deliverables || []; track d.id) {
+            <div class="item-row" [class.completed]="d.status === 'completed'">
+              <select [(ngModel)]="d.status" (change)="updateDeliverable(d)" class="status-select">
+                <option value="pending">En attente</option>
+                <option value="in_progress">En cours</option>
+                <option value="completed">Complete</option>
+              </select>
+              <div class="item-content">
+                <span class="item-name">{{ d.name }}</span>
+                @if (d.due_date) {
+                  <span class="item-date">
+                    <i class="fas fa-calendar"></i> {{ d.due_date }}
+                  </span>
+                }
+              </div>
+              <button class="btn-delete" (click)="removeDeliverable(d.id)">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          }
+          @if (!project()!.deliverables?.length) {
+            <div class="empty-state">
+              <i class="fas fa-box-open"></i>
+              <p>Aucun livrable defini</p>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Resources Tab -->
+    @if (tab() === 'resources') {
+      <div class="card">
+        <div class="section-header">
+          <h3><i class="fas fa-users"></i> Ressources</h3>
+          <div class="allocation-total" [class.over]="getTotalAllocation() > 100">
+            Allocation totale: {{ getTotalAllocation() }}%
+          </div>
+        </div>
+
+        <div class="add-form">
+          <input
+            type="text"
+            [(ngModel)]="newResource.name"
+            placeholder="Nom de la ressource..."
+            (keyup.enter)="addResource()">
+          <input
+            type="text"
+            [(ngModel)]="newResource.role"
+            placeholder="Role...">
+          <input
+            type="number"
+            [(ngModel)]="newResource.allocation"
+            min="0"
+            max="100"
+            placeholder="Allocation %"
+            class="allocation-input">
+          <button class="btn-primary" (click)="addResource()">
+            <i class="fas fa-plus"></i> Ajouter
+          </button>
+        </div>
+
+        <div class="items-list">
+          @for (r of project()!.resources || []; track r.id) {
+            <div class="item-row resource-row">
+              <div class="resource-avatar">
+                <i class="fas fa-user"></i>
+              </div>
+              <div class="item-content">
+                <span class="item-name">{{ r.name }}</span>
+                <span class="item-role">{{ r.role }}</span>
+              </div>
+              <div class="allocation-badge">
+                {{ r.allocation }}%
+              </div>
+              <button class="btn-delete" (click)="removeResource(r.id)">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          }
+          @if (!project()!.resources?.length) {
+            <div class="empty-state">
+              <i class="fas fa-user-plus"></i>
+              <p>Aucune ressource assignee</p>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Risks Tab -->
+    @if (tab() === 'risks') {
+      <div class="card">
+        <div class="section-header">
+          <h3><i class="fas fa-exclamation-triangle"></i> Risques</h3>
+        </div>
+
+        <div class="add-form risk-form">
+          <input
+            type="text"
+            [(ngModel)]="newRisk.description"
+            placeholder="Description du risque..."
+            class="risk-input">
+          <select [(ngModel)]="newRisk.probability">
+            <option value="low">Probabilite faible</option>
+            <option value="medium">Probabilite moyenne</option>
+            <option value="high">Probabilite elevee</option>
+          </select>
+          <select [(ngModel)]="newRisk.impact">
+            <option value="low">Impact faible</option>
+            <option value="medium">Impact moyen</option>
+            <option value="high">Impact eleve</option>
+          </select>
+          <button class="btn-primary" (click)="addRisk()">
+            <i class="fas fa-plus"></i> Ajouter
+          </button>
+        </div>
+
+        <div class="items-list">
+          @for (r of project()!.risks || []; track r.id) {
+            <div class="item-row risk-row" [class]="getRiskLevel(r.probability, r.impact)">
+              <div class="risk-level-indicator" [class]="getRiskLevel(r.probability, r.impact)"></div>
+              <div class="item-content">
+                <span class="item-name">{{ r.description }}</span>
+                <div class="risk-meta">
+                  <span class="risk-tag probability" [class]="r.probability">{{ r.probability }}</span>
+                  <span class="risk-tag impact" [class]="r.impact">{{ r.impact }}</span>
+                </div>
+              </div>
+              <select [(ngModel)]="r.status" (change)="updateRisk(r)" class="status-select">
+                <option value="identified">Identifie</option>
+                <option value="mitigated">Attenue</option>
+                <option value="occurred">Survenu</option>
+                <option value="closed">Ferme</option>
+              </select>
+              <button class="btn-delete" (click)="removeRisk(r.id)">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          }
+          @if (!project()!.risks?.length) {
+            <div class="empty-state">
+              <i class="fas fa-shield-alt"></i>
+              <p>Aucun risque identifie</p>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Budget Tab -->
+    @if (tab() === 'budget') {
+      <div class="budget-grid">
+        <div class="card budget-card">
+          <h3><i class="fas fa-wallet"></i> Budget</h3>
+          <div class="budget-inputs">
+            <div class="form-group">
+              <label>Budget total</label>
+              <div class="input-with-icon">
+                <i class="fas fa-euro-sign"></i>
+                <input
+                  type="number"
+                  [(ngModel)]="project()!.budget"
+                  (blur)="updateProject()"
+                  min="0"
+                  step="100">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Depense</label>
+              <div class="input-with-icon">
+                <i class="fas fa-euro-sign"></i>
+                <input
+                  type="number"
+                  [(ngModel)]="project()!.budget_spent"
+                  (blur)="updateProject()"
+                  min="0"
+                  step="100">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card budget-summary">
+          <div class="budget-visual">
+            <div class="budget-circle">
+              <svg viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="45" fill="none" stroke="var(--bg-tertiary)" stroke-width="10"/>
+                <circle
+                  cx="50" cy="50" r="45"
+                  fill="none"
+                  stroke="var(--accent)"
+                  stroke-width="10"
+                  stroke-linecap="round"
+                  [style.stroke-dasharray]="283"
+                  [style.stroke-dashoffset]="283 - (283 * Math.min(getBudgetProgress(), 100) / 100)"
+                  [class.over-budget]="getBudgetProgress() > 100"
+                  transform="rotate(-90 50 50)"/>
+              </svg>
+              <div class="budget-percent">
+                {{ getBudgetProgress().toFixed(0) }}%
+              </div>
+            </div>
+            <div class="budget-details">
+              <div class="budget-row">
+                <span>Budget</span>
+                <span class="budget-value">{{ formatCurrency(project()!.budget || 0) }}</span>
+              </div>
+              <div class="budget-row">
+                <span>Depense</span>
+                <span class="budget-value spent">{{ formatCurrency(project()!.budget_spent || 0) }}</span>
+              </div>
+              <div class="budget-row remaining">
+                <span>Restant</span>
+                <span class="budget-value" [class.negative]="(project()!.budget || 0) - (project()!.budget_spent || 0) < 0">
+                  {{ formatCurrency((project()!.budget || 0) - (project()!.budget_spent || 0)) }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+} @else {
+  <div class="loading">
+    <i class="fas fa-spinner fa-spin"></i>
+    <p>Chargement...</p>
+  </div>
+}

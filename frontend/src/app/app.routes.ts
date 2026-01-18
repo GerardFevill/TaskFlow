@@ -20,7 +20,7 @@ export const routes: Routes = [
   { path: 'backlog', loadComponent: () => import('./features/backlog/backlog.component').then(m => m.BacklogComponent) },
   { path: 'tickets/new', loadComponent: () => import('./features/ticket-create/ticket-create.component').then(m => m.TicketCreateComponent) },
   { path: 'ticket/:id', loadComponent: () => import('./features/ticket-detail/ticket-detail.component').then(m => m.TicketDetailComponent) },
-  { path: 'projects/:projectId', loadComponent: () => import('./features/projects/projects.component').then(m => m.ProjectsComponent) },
+  { path: 'project/:id', loadComponent: () => import('./features/project-detail/project-detail.component').then(m => m.ProjectDetailComponent) },
   { path: 'projects/:projectId/whiteboard', loadComponent: () => import('./features/whiteboard/whiteboard.component').then(m => m.WhiteboardComponent) },
   { path: '**', redirectTo: '/dashboard' }
 ];

@@ -7,9 +7,48 @@
       {{ currentProject()!.name }}
     </span>
   }
+  <div class="header-actions">
+    <button class="btn-edit-layout" [class.active]="editMode()" (click)="toggleEditMode()">
+      <i class="fas" [class]="editMode() ? 'fa-check' : 'fa-grip-vertical'"></i>
+      {{ editMode() ? 'Terminer' : 'Personnaliser' }}
+    </button>
+  </div>
 </div>
 
-<!-- Project Stats Card -->
+<!-- Edit Mode Toolbar -->
+@if (editMode()) {
+  <div class="edit-toolbar">
+    <span class="edit-hint"><i class="fas fa-info-circle"></i> Glissez les widgets pour les reorganiser</span>
+    <div class="toolbar-actions">
+      <button class="btn-add-widget" (click)="showWidgetCatalog.set(!showWidgetCatalog())">
+        <i class="fas fa-plus"></i> Ajouter widget
+      </button>
+      <button class="btn-reset" (click)="resetLayout()">
+        <i class="fas fa-undo"></i> Reinitialiser
+      </button>
+    </div>
+  </div>
+
+  @if (showWidgetCatalog()) {
+    <div class="widget-catalog">
+      <h4>Widgets disponibles</h4>
+      <div class="catalog-grid">
+        @for (hidden of getHiddenWidgets(); track hidden.id) {
+          <button class="catalog-item" (click)="showWidget(hidden)">
+            <i class="fas" [class]="hidden.icon"></i>
+            <span>{{ hidden.title }}</span>
+            <i class="fas fa-plus add-icon"></i>
+          </button>
+        }
+        @if (getHiddenWidgets().length === 0) {
+          <span class="no-widgets">Tous les widgets sont affiches</span>
+        }
+      </div>
+    </div>
+  }
+}
+
+<!-- Project Stats Card (always visible if project selected) -->
 @if (currentProject()) {
   <div class="project-stats-card" [style.border-left-color]="currentProject()!.color">
     <div class="project-icon" [style.color]="currentProject()!.color">
@@ -54,161 +93,318 @@
   </div>
 }
 
-<!-- Quick Stats -->
-@if (loading()) {
-  <div class="quick-stats">
-    @for (i of [1,2,3,4]; track i) {
-      <div class="stat-card skeleton-stat">
-        <div class="skeleton" style="width: 40px; height: 40px; border-radius: 8px;"></div>
-        <div class="stat-info">
-          <div class="skeleton" style="width: 50px; height: 28px; margin-bottom: 4px;"></div>
-          <div class="skeleton" style="width: 80px; height: 14px;"></div>
-        </div>
-      </div>
-    }
-  </div>
-} @else {
-  <div class="quick-stats">
-    <div class="stat-card accent">
-      <i class="fas fa-tasks"></i>
-      <div class="stat-info">
-        <span class="stat-value">{{ stats()?.total || 0 }}</span>
-        <span class="stat-label">Total tickets</span>
-      </div>
-    </div>
-    <div class="stat-card warning">
-      <i class="fas fa-clock"></i>
-      <div class="stat-info">
-        <span class="stat-value">{{ todayTickets().length }}</span>
-        <span class="stat-label">Aujourd'hui</span>
-      </div>
-    </div>
-    <div class="stat-card danger">
-      <i class="fas fa-exclamation-triangle"></i>
-      <div class="stat-info">
-        <span class="stat-value">{{ overdueTickets().length }}</span>
-        <span class="stat-label">En retard</span>
-      </div>
-    </div>
-    <div class="stat-card success">
-      <i class="fas fa-check-circle"></i>
-      <div class="stat-info">
-        <span class="stat-value">{{ stats()?.completedThisWeek || 0 }}</span>
-        <span class="stat-label">Cette semaine</span>
-      </div>
-    </div>
-  </div>
-}
+<!-- Widget Grid -->
+<div class="widget-grid" [class.edit-mode]="editMode()">
+  @for (widget of widgetService.getVisibleWidgets(); track widget.id; let i = $index) {
+    <div
+      class="widget"
+      [class]="'size-' + widget.size"
+      [class.dragging]="draggedWidget()?.id === widget.id"
+      [class.drag-over]="dragOverIndex() === i"
+      [attr.draggable]="editMode()"
+      (dragstart)="onDragStart($event, widget, i)"
+      (dragover)="onDragOver($event, i)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event, i)"
+      (dragend)="onDragEnd()">
 
-<div class="dashboard-grid">
-  <!-- Overdue Section -->
-  <div class="card urgent">
-    <div class="card-header">
-      <h3><i class="fas fa-fire"></i> En retard</h3>
-      <span class="count danger">{{ overdueTickets().length }}</span>
-    </div>
-    <div class="ticket-list">
-      @for (ticket of overdueTickets().slice(0, 5); track ticket.id) {
-        <div class="ticket-item" (click)="openTicket(ticket)">
-          <span class="priority" [class]="ticket.priority"><i class="fas fa-circle"></i></span>
-          <span class="title">{{ ticket.title }}</span>
-          <span class="due danger">{{ formatRelativeDate(ticket.due_date!) }}</span>
+      <!-- Widget Controls (Edit Mode) -->
+      @if (editMode()) {
+        <div class="widget-controls">
+          <div class="drag-handle"><i class="fas fa-grip-vertical"></i></div>
+          <div class="size-controls">
+            <button [class.active]="widget.size === 'small'" (click)="resizeWidget(widget, 'small')" title="Petit">S</button>
+            <button [class.active]="widget.size === 'medium'" (click)="resizeWidget(widget, 'medium')" title="Moyen">M</button>
+            <button [class.active]="widget.size === 'large'" (click)="resizeWidget(widget, 'large')" title="Grand">L</button>
+          </div>
+          <button class="btn-hide" (click)="hideWidget(widget)" title="Masquer">
+            <i class="fas fa-times"></i>
+          </button>
         </div>
       }
-      @if (overdueTickets().length === 0) {
-        <div class="empty success"><i class="fas fa-check"></i> Aucun retard</div>
-      }
-      @if (overdueTickets().length > 5) {
-        <a class="see-more" routerLink="/reminders">Voir tout ({{ overdueTickets().length }})</a>
-      }
-    </div>
-  </div>
 
-  <!-- Today Section -->
-  <div class="card today">
-    <div class="card-header">
-      <h3><i class="fas fa-calendar-day"></i> Aujourd'hui</h3>
-      <span class="count accent">{{ todayTickets().length }}</span>
-    </div>
-    <div class="ticket-list">
-      @for (ticket of todayTickets().slice(0, 5); track ticket.id) {
-        <div class="ticket-item" (click)="openTicket(ticket)">
-          <span class="priority" [class]="ticket.priority"><i class="fas fa-circle"></i></span>
-          <span class="title">{{ ticket.title }}</span>
-          <span class="status-badge" [class]="ticket.status">{{ formatStatus(ticket.status) }}</span>
-        </div>
-      }
-      @if (todayTickets().length === 0) {
-        <div class="empty"><i class="fas fa-coffee"></i> Rien pour aujourd'hui</div>
-      }
-    </div>
-  </div>
-
-  <!-- In Progress Section -->
-  <div class="card progress">
-    <div class="card-header">
-      <h3><i class="fas fa-spinner"></i> En cours</h3>
-      <span class="count plan">{{ inProgressTickets().length }}</span>
-    </div>
-    <div class="ticket-list">
-      @for (ticket of inProgressTickets().slice(0, 5); track ticket.id) {
-        <div class="ticket-item" (click)="openTicket(ticket)">
-          <span class="priority" [class]="ticket.priority"><i class="fas fa-circle"></i></span>
-          <span class="title">{{ ticket.title }}</span>
-          @if (ticket.time_estimated) {
-            <div class="mini-progress">
-              <div class="mini-bar" [style.width.%]="getProgress(ticket)"></div>
+      <!-- Stats Summary Widget -->
+      @if (widget.type === 'stats-summary') {
+        <div class="widget-content stats-summary">
+          <div class="stat-card accent">
+            <i class="fas fa-tasks"></i>
+            <div class="stat-info">
+              <span class="stat-value">{{ stats()?.total || 0 }}</span>
+              <span class="stat-label">Total tickets</span>
             </div>
+          </div>
+          <div class="stat-card warning">
+            <i class="fas fa-clock"></i>
+            <div class="stat-info">
+              <span class="stat-value">{{ todayTickets().length }}</span>
+              <span class="stat-label">Aujourd'hui</span>
+            </div>
+          </div>
+          <div class="stat-card danger">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div class="stat-info">
+              <span class="stat-value">{{ overdueTickets().length }}</span>
+              <span class="stat-label">En retard</span>
+            </div>
+          </div>
+          <div class="stat-card success">
+            <i class="fas fa-check-circle"></i>
+            <div class="stat-info">
+              <span class="stat-value">{{ stats()?.completedThisWeek || 0 }}</span>
+              <span class="stat-label">Cette semaine</span>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Overdue Widget -->
+      @if (widget.type === 'overdue') {
+        <div class="widget-content card-widget urgent">
+          <div class="card-header">
+            <h3><i class="fas fa-fire"></i> {{ widget.title }}</h3>
+            <span class="count danger">{{ overdueTickets().length }}</span>
+          </div>
+          <div class="ticket-list">
+            @for (ticket of overdueTickets().slice(0, 5); track ticket.id) {
+              <div class="ticket-item" (click)="openTicket(ticket)">
+                <span class="priority" [class]="ticket.priority"><i class="fas fa-circle"></i></span>
+                <span class="title">{{ ticket.title }}</span>
+                <span class="due danger">{{ formatRelativeDate(ticket.due_date!) }}</span>
+              </div>
+            }
+            @if (overdueTickets().length === 0) {
+              <div class="empty success"><i class="fas fa-check"></i> Aucun retard</div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Today Widget -->
+      @if (widget.type === 'today') {
+        <div class="widget-content card-widget today">
+          <div class="card-header">
+            <h3><i class="fas fa-calendar-day"></i> {{ widget.title }}</h3>
+            <span class="count accent">{{ todayTickets().length }}</span>
+          </div>
+          <div class="ticket-list">
+            @for (ticket of todayTickets().slice(0, 5); track ticket.id) {
+              <div class="ticket-item" (click)="openTicket(ticket)">
+                <span class="priority" [class]="ticket.priority"><i class="fas fa-circle"></i></span>
+                <span class="title">{{ ticket.title }}</span>
+                <span class="status-badge" [class]="ticket.status">{{ formatStatus(ticket.status) }}</span>
+              </div>
+            }
+            @if (todayTickets().length === 0) {
+              <div class="empty"><i class="fas fa-coffee"></i> Rien pour aujourd'hui</div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- In Progress Widget -->
+      @if (widget.type === 'in-progress') {
+        <div class="widget-content card-widget progress">
+          <div class="card-header">
+            <h3><i class="fas fa-spinner"></i> {{ widget.title }}</h3>
+            <span class="count plan">{{ inProgressTickets().length }}</span>
+          </div>
+          <div class="ticket-list">
+            @for (ticket of inProgressTickets().slice(0, 5); track ticket.id) {
+              <div class="ticket-item" (click)="openTicket(ticket)">
+                <span class="priority" [class]="ticket.priority"><i class="fas fa-circle"></i></span>
+                <span class="title">{{ ticket.title }}</span>
+                @if (ticket.time_estimated) {
+                  <div class="mini-progress">
+                    <div class="mini-bar" [style.width.%]="getProgress(ticket)"></div>
+                  </div>
+                }
+              </div>
+            }
+            @if (inProgressTickets().length === 0) {
+              <div class="empty">Aucun ticket en cours</div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- This Week Widget -->
+      @if (widget.type === 'this-week') {
+        <div class="widget-content card-widget week">
+          <div class="card-header">
+            <h3><i class="fas fa-calendar-week"></i> {{ widget.title }}</h3>
+            <span class="count">{{ thisWeekTickets().length }}</span>
+          </div>
+          <div class="ticket-list">
+            @for (ticket of thisWeekTickets().slice(0, 5); track ticket.id) {
+              <div class="ticket-item" (click)="openTicket(ticket)">
+                <span class="priority" [class]="ticket.priority"><i class="fas fa-circle"></i></span>
+                <span class="title">{{ ticket.title }}</span>
+                <span class="due">{{ formatShortDate(ticket.due_date!) }}</span>
+              </div>
+            }
+            @if (thisWeekTickets().length === 0) {
+              <div class="empty">Aucune echeance cette semaine</div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Recent Widget -->
+      @if (widget.type === 'recent') {
+        <div class="widget-content card-widget recent">
+          <div class="card-header">
+            <h3><i class="fas fa-history"></i> {{ widget.title }}</h3>
+          </div>
+          <div class="ticket-list horizontal">
+            @for (ticket of recentTickets().slice(0, 6); track ticket.id) {
+              <div class="ticket-card-mini" [class]="ticket.priority" (click)="openTicket(ticket)">
+                <div class="card-priority"><i class="fas fa-circle"></i></div>
+                <div class="card-title">{{ ticket.title }}</div>
+                <div class="card-meta">
+                  <span class="status-badge small" [class]="ticket.status">{{ formatStatus(ticket.status) }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Priority Chart Widget -->
+      @if (widget.type === 'priority-chart') {
+        <div class="widget-content card-widget">
+          <div class="card-header">
+            <h3><i class="fas fa-chart-pie"></i> {{ widget.title }}</h3>
+          </div>
+          <div class="priority-chart">
+            <div class="priority-bar">
+              @if (priorityStats().do > 0) {
+                <div class="bar-segment do" [style.flex]="priorityStats().do" title="Faire: {{ priorityStats().do }}"></div>
+              }
+              @if (priorityStats().plan > 0) {
+                <div class="bar-segment plan" [style.flex]="priorityStats().plan" title="Planifier: {{ priorityStats().plan }}"></div>
+              }
+              @if (priorityStats().delegate > 0) {
+                <div class="bar-segment delegate" [style.flex]="priorityStats().delegate" title="Deleguer: {{ priorityStats().delegate }}"></div>
+              }
+              @if (priorityStats().eliminate > 0) {
+                <div class="bar-segment eliminate" [style.flex]="priorityStats().eliminate" title="Eliminer: {{ priorityStats().eliminate }}"></div>
+              }
+            </div>
+            <div class="priority-legend">
+              <span class="legend-item"><i class="fas fa-circle do"></i> Faire ({{ priorityStats().do }})</span>
+              <span class="legend-item"><i class="fas fa-circle plan"></i> Planifier ({{ priorityStats().plan }})</span>
+              <span class="legend-item"><i class="fas fa-circle delegate"></i> Deleguer ({{ priorityStats().delegate }})</span>
+              <span class="legend-item"><i class="fas fa-circle eliminate"></i> Eliminer ({{ priorityStats().eliminate }})</span>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Quick Actions Widget -->
+      @if (widget.type === 'quick-actions') {
+        <div class="widget-content card-widget quick-actions">
+          <div class="card-header">
+            <h3><i class="fas fa-bolt"></i> {{ widget.title }}</h3>
+          </div>
+          <div class="actions-grid">
+            <button class="action-btn" (click)="createTicket()">
+              <i class="fas fa-plus"></i>
+              <span>Nouveau ticket</span>
+            </button>
+            <button class="action-btn" (click)="openKanban()">
+              <i class="fas fa-columns"></i>
+              <span>Kanban</span>
+            </button>
+            <button class="action-btn" (click)="openCalendar()">
+              <i class="fas fa-calendar"></i>
+              <span>Calendrier</span>
+            </button>
+            <button class="action-btn" (click)="openStats()">
+              <i class="fas fa-chart-bar"></i>
+              <span>Stats</span>
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- Calendar Mini Widget -->
+      @if (widget.type === 'calendar-mini') {
+        <div class="widget-content card-widget">
+          <div class="card-header">
+            <h3><i class="fas fa-calendar"></i> {{ getMonthName() }}</h3>
+          </div>
+          <div class="calendar-mini">
+            <div class="calendar-header">
+              <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
+            </div>
+            <div class="calendar-days">
+              @for (day of getCurrentMonth(); track $index) {
+                <span
+                  class="day"
+                  [class.today]="day.isToday"
+                  [class.has-event]="day.hasEvent"
+                  [class.empty]="day.day === 0">
+                  {{ day.day || '' }}
+                </span>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Project Progress Widget -->
+      @if (widget.type === 'project-progress') {
+        <div class="widget-content card-widget">
+          <div class="card-header">
+            <h3><i class="fas fa-tasks"></i> {{ widget.title }}</h3>
+          </div>
+          @if (currentProject()) {
+            <div class="project-progress">
+              <div class="progress-visual">
+                <svg viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="45" fill="none" stroke="var(--bg-tertiary)" stroke-width="8"/>
+                  <circle
+                    cx="50" cy="50" r="45"
+                    fill="none"
+                    [attr.stroke]="currentProject()!.color"
+                    stroke-width="8"
+                    stroke-linecap="round"
+                    [attr.stroke-dasharray]="projectStats().progress * 2.83 + ' 283'"
+                    transform="rotate(-90 50 50)"/>
+                </svg>
+                <div class="progress-center">
+                  <span class="progress-value">{{ projectStats().progress }}%</span>
+                  <span class="progress-label">Complete</span>
+                </div>
+              </div>
+              <div class="progress-details">
+                <div class="detail-row">
+                  <span class="label">A faire</span>
+                  <span class="value">{{ projectStats().todo }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">En cours</span>
+                  <span class="value">{{ projectStats().inProgress }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Termine</span>
+                  <span class="value">{{ projectStats().done }}</span>
+                </div>
+              </div>
+            </div>
+          } @else {
+            <div class="empty">Selectionnez un projet</div>
           }
         </div>
       }
-      @if (inProgressTickets().length === 0) {
-        <div class="empty">Aucun ticket en cours</div>
-      }
-      @if (inProgressTickets().length > 5) {
-        <a class="see-more" routerLink="/kanban">Voir tout ({{ inProgressTickets().length }})</a>
-      }
     </div>
-  </div>
-
-  <!-- This Week Section -->
-  <div class="card week">
-    <div class="card-header">
-      <h3><i class="fas fa-calendar-week"></i> Cette semaine</h3>
-      <span class="count">{{ thisWeekTickets().length }}</span>
-    </div>
-    <div class="ticket-list">
-      @for (ticket of thisWeekTickets().slice(0, 5); track ticket.id) {
-        <div class="ticket-item" (click)="openTicket(ticket)">
-          <span class="priority" [class]="ticket.priority"><i class="fas fa-circle"></i></span>
-          <span class="title">{{ ticket.title }}</span>
-          <span class="due">{{ formatShortDate(ticket.due_date!) }}</span>
-        </div>
-      }
-      @if (thisWeekTickets().length === 0) {
-        <div class="empty">Aucune echeance cette semaine</div>
-      }
-      @if (thisWeekTickets().length > 5) {
-        <a class="see-more" routerLink="/calendar">Voir tout ({{ thisWeekTickets().length }})</a>
-      }
-    </div>
-  </div>
+  }
 </div>
 
-<!-- Recent Activity -->
-<div class="card recent">
-  <div class="card-header">
-    <h3><i class="fas fa-history"></i> Derniers tickets modifies</h3>
+@if (widgetService.getVisibleWidgets().length === 0) {
+  <div class="no-widgets-state">
+    <i class="fas fa-th-large"></i>
+    <h3>Aucun widget affiche</h3>
+    <p>Cliquez sur "Personnaliser" pour ajouter des widgets</p>
   </div>
-  <div class="ticket-list horizontal">
-    @for (ticket of recentTickets().slice(0, 6); track ticket.id) {
-      <div class="ticket-card-mini" [class]="ticket.priority" (click)="openTicket(ticket)">
-        <div class="card-priority"><i class="fas fa-circle"></i></div>
-        <div class="card-title">{{ ticket.title }}</div>
-        <div class="card-meta">
-          <span class="status-badge small" [class]="ticket.status">{{ formatStatus(ticket.status) }}</span>
-        </div>
-      </div>
-    }
-  </div>
-</div>
+}

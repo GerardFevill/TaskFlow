@@ -10,6 +10,8 @@ import {
   Activity,
   Attachment,
   Stats,
+  ProductivityData,
+  DistributionData,
   GanttItem,
   Template,
   Dependency,
@@ -135,6 +137,20 @@ export class TicketService {
     return this.http.get<Stats>(`${this.baseApi}/stats`);
   }
 
+  getProductivityStats(projectId?: number) {
+    const url = projectId
+      ? `${this.baseApi}/stats/productivity?project_id=${projectId}`
+      : `${this.baseApi}/stats/productivity`;
+    return this.http.get<ProductivityData[]>(url);
+  }
+
+  getDistributionStats(projectId?: number) {
+    const url = projectId
+      ? `${this.baseApi}/stats/distribution?project_id=${projectId}`
+      : `${this.baseApi}/stats/distribution`;
+    return this.http.get<DistributionData>(url);
+  }
+
   // Search
   search(query: string) {
     return this.http.get<Ticket[]>(`${this.baseApi}/search?q=${encodeURIComponent(query)}`);
@@ -191,6 +207,11 @@ export class TicketService {
 
   deleteComment(id: number) {
     return this.http.delete(`${this.baseApi}/comments/${id}`);
+  }
+
+  // Comment Reactions
+  toggleReaction(commentId: number, emoji: string) {
+    return this.http.post<{ action: string; emoji: string }>(`${this.baseApi}/comments/${commentId}/reactions`, { emoji });
   }
 
   // Activity

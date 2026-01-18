@@ -1,10 +1,10 @@
 import { Component, inject, signal, OnInit, computed } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TicketService, Project } from '../../data';
 
 @Component({
     selector: 'app-projects-dashboard',
-    imports: [RouterLink],
+    imports: [],
     templateUrl: './projects-dashboard.component.html',
     styleUrl: './projects-dashboard.component.scss'
 })
@@ -35,11 +35,11 @@ export class ProjectsDashboardComponent implements OnInit {
     );
 
     totalDone = computed(() =>
-        this.projects().reduce((sum, p) => sum + (p.ticketDone || p.ticket_done || 0), 0)
+        this.projects().reduce((sum, p) => sum + (p.ticket_done || 0), 0)
     );
 
     totalInProgress = computed(() =>
-        this.projects().reduce((sum, p) => sum + (p.ticketInProgress || p.ticket_in_progress || 0), 0)
+        this.projects().reduce((sum, p) => sum + (p.ticket_in_progress || 0), 0)
     );
 
     globalProgress = computed(() => {
@@ -52,7 +52,7 @@ export class ProjectsDashboardComponent implements OnInit {
     mostActiveProjects = computed(() =>
         [...this.projects()]
             .filter(p => this.getTicketCount(p) > 0)
-            .sort((a, b) => (b.ticketInProgress || b.ticket_in_progress || 0) - (a.ticketInProgress || a.ticket_in_progress || 0))
+            .sort((a, b) => (b.ticket_in_progress || 0) - (a.ticket_in_progress || 0))
             .slice(0, 5)
     );
 
@@ -79,21 +79,21 @@ export class ProjectsDashboardComponent implements OnInit {
         });
     }
 
-    // Helper to get ticket count (supports both camelCase and snake_case)
+    // Helper methods for project stats
     getTicketCount(project: Project): number {
-        return project.ticketCount || project.ticket_count || 0;
+        return project.ticket_count || 0;
     }
 
     getTicketDone(project: Project): number {
-        return project.ticketDone || project.ticket_done || 0;
+        return project.ticket_done || 0;
     }
 
     getTicketTodo(project: Project): number {
-        return project.ticketTodo || project.ticket_todo || 0;
+        return project.ticket_todo || 0;
     }
 
     getTicketInProgress(project: Project): number {
-        return project.ticketInProgress || project.ticket_in_progress || 0;
+        return project.ticket_in_progress || 0;
     }
 
     getProgress(project: Project): number {

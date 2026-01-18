@@ -105,6 +105,10 @@ export class ProjectsComponent implements OnInit {
     this.router.navigate(['/kanban'], { queryParams: { project: project.id } });
   }
 
+  openProjectDetail(project: Project) {
+    this.router.navigate(['/project', project.id]);
+  }
+
   openWhiteboard(project: Project) {
     this.router.navigate(['/projects', project.id, 'whiteboard']);
   }

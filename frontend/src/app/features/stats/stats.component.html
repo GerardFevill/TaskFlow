@@ -36,6 +36,125 @@
   </div>
 </div>
 
+<!-- Productivity Line Chart -->
+<div class="card">
+  <h3><i class="fas fa-chart-line"></i> Productivite (8 dernieres semaines)</h3>
+  @if (productivityData().length > 0) {
+    <div class="chart-container">
+      <svg viewBox="0 0 520 180" class="line-chart">
+        <!-- Grid lines -->
+        <line x1="20" y1="20" x2="20" y2="150" stroke="var(--border)" stroke-width="1"/>
+        <line x1="20" y1="150" x2="500" y2="150" stroke="var(--border)" stroke-width="1"/>
+        @for (i of [0, 1, 2, 3, 4]; track i) {
+          <line [attr.x1]="20" [attr.y1]="20 + i * 32.5" [attr.x2]="500" [attr.y2]="20 + i * 32.5" stroke="var(--border)" stroke-width="0.5" stroke-dasharray="4"/>
+        }
+
+        <!-- Completed line (green) -->
+        <path [attr.d]="getCompletedPath()" fill="none" stroke="#22c55e" stroke-width="2.5" transform="translate(20, 0)"/>
+        @for (d of productivityData(); track d.week; let i = $index) {
+          <circle [attr.cx]="20 + i * (480 / (productivityData().length - 1 || 1))" [attr.cy]="getProductivityY(d.completed)" r="4" fill="#22c55e"/>
+        }
+
+        <!-- Created line (blue) -->
+        <path [attr.d]="getCreatedPath()" fill="none" stroke="#3b82f6" stroke-width="2.5" transform="translate(20, 0)"/>
+        @for (d of productivityData(); track d.week; let i = $index) {
+          <circle [attr.cx]="20 + i * (480 / (productivityData().length - 1 || 1))" [attr.cy]="getProductivityY(d.created)" r="4" fill="#3b82f6"/>
+        }
+
+        <!-- X-axis labels -->
+        @for (d of productivityData(); track d.week; let i = $index) {
+          <text [attr.x]="20 + i * (480 / (productivityData().length - 1 || 1))" y="168" font-size="10" fill="var(--text-muted)" text-anchor="middle">{{ d.label }}</text>
+        }
+
+        <!-- Y-axis labels -->
+        <text x="15" y="25" font-size="10" fill="var(--text-muted)" text-anchor="end">{{ getMaxProductivity() }}</text>
+        <text x="15" y="150" font-size="10" fill="var(--text-muted)" text-anchor="end">0</text>
+      </svg>
+      <div class="chart-legend">
+        <div class="legend-item">
+          <span class="legend-dot created"></span>
+          <span>Crees</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot completed"></span>
+          <span>Termines</span>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="no-data">
+      <i class="fas fa-chart-line"></i>
+      <p>Pas de donnees disponibles</p>
+    </div>
+  }
+</div>
+
+<!-- Pie Charts Row -->
+<div class="charts-row">
+  <div class="card">
+    <h3><i class="fas fa-chart-pie"></i> Distribution par statut</h3>
+    @if (getPieSlices('status').length > 0) {
+      <div class="pie-chart-container">
+        <svg viewBox="0 0 150 150" class="pie-chart">
+          @for (slice of getPieSlices('status'); track slice.label) {
+            <path [attr.d]="slice.path" [attr.fill]="slice.color" class="pie-slice"/>
+          }
+          <circle cx="75" cy="75" r="30" fill="var(--bg-secondary)"/>
+          <text x="75" y="75" text-anchor="middle" dominant-baseline="middle" font-size="14" font-weight="600" fill="var(--text)">
+            {{ distributionData()?.total || 0 }}
+          </text>
+        </svg>
+        <div class="pie-legend">
+          @for (slice of getPieSlices('status'); track slice.label) {
+            <div class="legend-row">
+              <span class="legend-color" [style.background]="slice.color"></span>
+              <span class="legend-text">{{ slice.label }}</span>
+              <span class="legend-value">{{ slice.percentage }}%</span>
+            </div>
+          }
+        </div>
+      </div>
+    } @else {
+      <div class="no-data small">
+        <i class="fas fa-chart-pie"></i>
+        <p>Pas de donnees</p>
+      </div>
+    }
+  </div>
+
+  <div class="card">
+    <h3><i class="fas fa-chart-pie"></i> Distribution par priorite</h3>
+    @if (getPieSlices('priority').length > 0) {
+      <div class="pie-chart-container">
+        <svg viewBox="0 0 150 150" class="pie-chart">
+          @for (slice of getPieSlices('priority'); track slice.label) {
+            <path [attr.d]="slice.path" [attr.fill]="slice.color" class="pie-slice"/>
+          }
+          <circle cx="75" cy="75" r="30" fill="var(--bg-secondary)"/>
+          <text x="75" y="75" text-anchor="middle" dominant-baseline="middle" font-size="14" font-weight="600" fill="var(--text)">
+            {{ distributionData()?.total || 0 }}
+          </text>
+        </svg>
+        <div class="pie-legend">
+          @for (slice of getPieSlices('priority'); track slice.label) {
+            <div class="legend-row">
+              <span class="legend-color" [style.background]="slice.color"></span>
+              <span class="legend-text">{{ slice.label }}</span>
+              <span class="legend-value">{{ slice.percentage }}%</span>
+            </div>
+          }
+        </div>
+      </div>
+    } @else {
+      <div class="no-data small">
+        <i class="fas fa-chart-pie"></i>
+        <p>Pas de donnees</p>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Bar Charts Row -->
 <div class="charts-row">
   <div class="card">
     <h3><i class="fas fa-flag"></i> Par priorite</h3>

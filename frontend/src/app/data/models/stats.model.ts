@@ -6,6 +6,26 @@ export interface Stats {
   completedThisWeek: number;
 }
 
+export interface ProductivityData {
+  week: string;
+  label: string;
+  created: number;
+  completed: number;
+}
+
+export interface DistributionItem {
+  status?: string;
+  priority?: string;
+  count: number;
+  percentage: number;
+}
+
+export interface DistributionData {
+  byStatus: DistributionItem[];
+  byPriority: DistributionItem[];
+  total: number;
+}
+
 export interface GanttItem {
   id: number;
   title: string;

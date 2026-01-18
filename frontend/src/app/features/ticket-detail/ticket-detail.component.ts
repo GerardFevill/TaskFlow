@@ -1,13 +1,14 @@
 import { Component, inject, signal, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TaskService, Task, TicketService, Ticket, Label, Comment, Activity, Attachment, Project, Dependency, EpicService, MilestoneService, SprintService } from '../../data';
+import { TaskService, Task, TicketService, Ticket, Label, Comment, Activity, Attachment, Project, Dependency, EpicService, MilestoneService, SprintService, Reaction } from '../../data';
 import { Epic, Milestone, Sprint } from '../../data/models';
 import { ToastService } from '../../core';
+import { MarkdownPipe } from '../../shared';
 
 @Component({
   selector: 'app-ticket-detail',
-  imports: [FormsModule],
+  imports: [FormsModule, MarkdownPipe],
   templateUrl: './ticket-detail.component.html',
   styleUrl: './ticket-detail.component.scss'
 })
@@ -443,6 +444,25 @@ export class TicketDetailComponent implements OnInit, OnDestroy {
 
   deleteComment(comment: Comment) {
     this.ticketService.deleteComment(comment.id).subscribe(() => this.loadComments());
+  }
+
+  // Reactions
+  availableEmojis = ['👍', '❤️', '🎉', '🚀', '👀', '🤔'];
+  emojiPickerOpen = signal<number | null>(null);
+
+  toggleEmojiPicker(commentId: number) {
+    this.emojiPickerOpen.set(this.emojiPickerOpen() === commentId ? null : commentId);
+  }
+
+  addReaction(comment: Comment, emoji: string) {
+    this.ticketService.toggleReaction(comment.id, emoji).subscribe(() => {
+      this.loadComments();
+    });
+    this.emojiPickerOpen.set(null);
+  }
+
+  hasReaction(comment: Comment, emoji: string): boolean {
+    return comment.reactions?.some(r => r.emoji === emoji) ?? false;
   }
 
   // Time

@@ -12,3 +12,4 @@ export * from './epic.model';
 export * from './milestone.model';
 export * from './sprint.model';
 export * from './search.model';
+export * from './widget.model';

@@ -30,6 +30,35 @@ html, body {
   --primary-light: #818cf8;    /* Indigo-400 */
   --primary-dark: #4f46e5;     /* Indigo-600 */
 
+  /* Accent Color Palettes */
+  --accent-indigo: #6366f1;
+  --accent-indigo-light: #818cf8;
+  --accent-indigo-dark: #4f46e5;
+
+  --accent-blue: #3b82f6;
+  --accent-blue-light: #60a5fa;
+  --accent-blue-dark: #2563eb;
+
+  --accent-green: #22c55e;
+  --accent-green-light: #4ade80;
+  --accent-green-dark: #16a34a;
+
+  --accent-purple: #a855f7;
+  --accent-purple-light: #c084fc;
+  --accent-purple-dark: #9333ea;
+
+  --accent-rose: #f43f5e;
+  --accent-rose-light: #fb7185;
+  --accent-rose-dark: #e11d48;
+
+  --accent-orange: #f97316;
+  --accent-orange-light: #fb923c;
+  --accent-orange-dark: #ea580c;
+
+  --accent-cyan: #06b6d4;
+  --accent-cyan-light: #22d3ee;
+  --accent-cyan-dark: #0891b2;
+
   /* Semantic Colors */
   --color-success: #22c55e;    /* Green-500 */
   --color-warning: #f59e0b;    /* Amber-500 */
