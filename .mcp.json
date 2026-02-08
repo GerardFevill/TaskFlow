@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "taskflow": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "tsx",
+        "mcp-server/src/index.ts"
+      ],
+      "env": {
+        "DB_HOST": "localhost",
+        "DB_PORT": "5432",
+        "DB_USER": "avalis",
+        "DB_PASSWORD": "avalis",
+        "DB_NAME": "gestion_projet"
+      }
+    }
+  }
+}
