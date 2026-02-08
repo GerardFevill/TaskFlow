@@ -5,9 +5,9 @@
 - Ne pas mentionner Claude Code dans les commits ou PR
 
 ## Stack
-- **Frontend**: Angular 19 + Signals (port 10001)
-- **Backend**: Node.js + Express + Multer (port 10000)
-- **BDD**: PostgreSQL
+- **Frontend**: Angular 21 + Signals + Tailwind CSS (port 10001)
+- **Backend**: Node.js + Express + Drizzle ORM + TypeScript (port 10000)
+- **BDD**: PostgreSQL 16
 - **Conteneurs**: Docker
 
 ## Principes
@@ -17,43 +17,103 @@
 ## Structure
 ```
 frontend/src/app/
-├── app.ts, app.config.ts, app.routes.ts
-├── shared.styles.ts
-├── ticket.service.ts, task.service.ts
-├── toast.service.ts, undo.service.ts
-├── dashboard.component.ts      # /dashboard
-├── kanban.component.ts         # /kanban
-├── list.component.ts           # /list
-├── calendar.component.ts       # /calendar
-├── gantt.component.ts          # /gantt
-├── stats.component.ts          # /stats
-├── reminders.component.ts      # /reminders
-├── archives.component.ts       # /archives
-├── templates.component.ts      # /templates
-├── history.component.ts        # /history
-├── projects.component.ts       # /projects
-└── ticket-detail.component.ts  # /ticket/:id
+├── app.component.ts, app.config.ts, app.routes.ts
+├── core/services/
+│   ├── toast.service.ts
+│   └── undo.service.ts
+├── data/
+│   ├── models/
+│   │   ├── project.model.ts, ticket.model.ts, task.model.ts
+│   │   ├── label.model.ts, comment.model.ts, attachment.model.ts
+│   │   ├── activity.model.ts, template.model.ts, dependency.model.ts
+│   │   ├── epic.model.ts, milestone.model.ts, sprint.model.ts
+│   │   ├── widget.model.ts, whiteboard.model.ts
+│   │   ├── search.model.ts, stats.model.ts
+│   │   └── index.ts
+│   └── services/
+│       ├── ticket.service.ts, task.service.ts
+│       ├── epic.service.ts, milestone.service.ts, sprint.service.ts
+│       ├── whiteboard.service.ts, widget.service.ts
+│       └── index.ts
+├── features/
+│   ├── dashboard/             # /dashboard (widgets personnalisables)
+│   ├── kanban/                # /kanban
+│   ├── list/                  # /list
+│   ├── calendar/              # /calendar
+│   ├── gantt/                 # /gantt
+│   ├── stats/                 # /stats
+│   ├── reminders/             # /reminders
+│   ├── archives/              # /archives
+│   ├── templates/             # /templates
+│   ├── history/               # /history
+│   ├── projects/              # /projects
+│   ├── projects-dashboard/    # /projects/dashboard
+│   ├── project-detail/        # /projects/:id
+│   ├── epics/                 # /epics
+│   ├── milestones/            # /milestones
+│   ├── sprints/               # /sprints (+ burndown, velocity charts)
+│   ├── backlog/               # /backlog
+│   ├── whiteboard/            # /whiteboard/:id
+│   ├── ticket-create/         # /tickets/new
+│   └── ticket-detail/         # /tickets/:id
+└── shared/components/
+    └── progress-ring.component.ts
 
-backend/
-├── server.js
-├── uploads/
-└── package.json
+backend/src/
+├── index.ts                   # Entry point
+├── app.ts                     # Express app factory
+├── config/
+│   ├── database.ts            # Drizzle ORM client
+│   └── environment.ts         # Env variables
+├── middleware/
+│   ├── error-handler.ts
+│   ├── upload.ts              # Multer config
+│   └── validate.ts
+├── db/schema/                 # Drizzle schemas (15 tables)
+└── modules/                   # 18 API modules
+    ├── projects/
+    ├── tickets/
+    ├── tasks/
+    ├── labels/
+    ├── comments/
+    ├── attachments/
+    ├── activity/
+    ├── templates/
+    ├── dependencies/
+    ├── settings/
+    ├── epics/
+    ├── milestones/
+    ├── sprints/
+    ├── whiteboards/
+    ├── reminders/
+    ├── search/
+    ├── stats/
+    ├── transformations/
+    └── import-export/
 ```
 
 ## Modele de donnees
 
 ### Hierarchie
-Project → Ticket → Task → Subtask
+Project → Epic → Milestone → Sprint → Ticket → Task → Subtask
 
-### Tables
+### Tables (15)
 
 **Project**: id, name, description, color (#hex), icon (fa-*), archived, created_at
 
-**Ticket**: id, title, status, priority, description, due_date, start_date, position, archived, pinned, recurrence, reminder_days, time_estimated, time_spent, project_id, created_at
+**Epic**: id, name, description, color, status, project_id, created_at
+
+**Milestone**: id, name, description, due_date, status, project_id, created_at
+
+**Sprint**: id, name, goal, start_date, end_date, status, project_id, created_at
+
+**Ticket**: id, title, status, priority, description, due_date, start_date, position, archived, pinned, recurrence, reminder_days, time_estimated, time_spent, project_id, epic_id, milestone_id, sprint_id, search_vector, created_at
 
 **Task**: id, text, done, position, ticket_id, parent_id (pour subtasks)
 
 **Label**: id, name, color
+
+**Ticket_Labels**: ticket_id, label_id (junction table)
 
 **Comment**: id, text, created_at, ticket_id
 
@@ -65,9 +125,15 @@ Project → Ticket → Task → Subtask
 
 **Ticket_Dependencies**: id, ticket_id, depends_on_id
 
+**Whiteboard**: id, project_id, name, description, viewport_x, viewport_y, viewport_zoom, background_color, grid_enabled, grid_size, snap_to_grid, created_at, updated_at
+
+**Whiteboard_Elements**: id, board_id, type, x, y, width, height, rotation, fill_color, stroke_color, stroke_width, opacity, text_content, font_size, font_family, text_align, line_style, start_arrow, end_arrow, start_element_id, end_element_id, start_anchor, end_anchor, path_data, image_url, image_filename, z_index, locked, created_at, updated_at
+
+**Settings**: key, value (KV store)
+
 ### Valeurs
 
-**Status**: `todo`, `in_progress`, `done`
+**Ticket Status**: `todo`, `in_progress`, `done`
 
 **Priority** (Eisenhower):
 - `do` (rouge #ff6b6b) - Urgent + Important
@@ -76,6 +142,14 @@ Project → Ticket → Task → Subtask
 - `eliminate` (gris #636e72) - Ni l'un ni l'autre
 
 **Recurrence**: `none`, `daily`, `weekly`, `monthly`, `yearly`
+
+**Epic Status**: `open`, `in_progress`, `completed`
+
+**Milestone Status**: `open`, `closed`
+
+**Sprint Status**: `planning`, `active`, `completed`
+
+**Whiteboard Element Types**: `sticky_note`, `rectangle`, `circle`, `triangle`, `diamond`, `line`, `arrow`, `text`, `image`, `connector`, `freehand`
 
 ## Commandes Docker
 ```bash
@@ -143,7 +217,7 @@ docker-compose logs -f            # Logs
 - `POST /api/tickets/:id/time` - Ajouter temps (minutes)
 
 ### Search
-- `GET /api/search?q=terme` - Recherche simple
+- `GET /api/search?q=terme` - Recherche simple (full-text FR)
 - `POST /api/search/advanced` - Body: `{ query, status[], priority[], labels[], dateFrom, dateTo, projectId, pinned }`
 
 ### Templates
@@ -157,6 +231,51 @@ docker-compose logs -f            # Logs
 - `GET /api/tickets/:id/dependencies` - Liste
 - `POST /api/tickets/:id/dependencies` - Ajouter
 - `DELETE /api/tickets/:id/dependencies/:depId` - Supprimer
+
+### Epics
+- `GET /api/epics` - Liste
+- `GET /api/epics?project_id=X` - Filtrer par projet
+- `GET /api/epics/:id` - Un epic avec tickets
+- `POST /api/epics` - Creer
+- `PUT /api/epics/:id` - Modifier
+- `DELETE /api/epics/:id` - Supprimer
+
+### Milestones
+- `GET /api/milestones` - Liste
+- `GET /api/milestones?project_id=X` - Filtrer par projet
+- `GET /api/milestones/:id` - Un milestone avec tickets
+- `POST /api/milestones` - Creer
+- `PUT /api/milestones/:id` - Modifier
+- `DELETE /api/milestones/:id` - Supprimer
+
+### Sprints
+- `GET /api/sprints` - Liste
+- `GET /api/sprints?project_id=X` - Filtrer par projet
+- `GET /api/sprints/:id` - Un sprint avec tickets
+- `POST /api/sprints` - Creer
+- `PUT /api/sprints/:id` - Modifier
+- `DELETE /api/sprints/:id` - Supprimer
+- `GET /api/sprints/:id/burndown` - Donnees burndown chart
+- `GET /api/sprints/:id/velocity` - Donnees velocity chart
+
+### Whiteboards
+- `GET /api/whiteboards` - Liste
+- `GET /api/whiteboards?project_id=X` - Filtrer par projet
+- `GET /api/whiteboards/:id` - Un whiteboard avec elements
+- `POST /api/whiteboards` - Creer
+- `PUT /api/whiteboards/:id` - Modifier (viewport, settings)
+- `DELETE /api/whiteboards/:id` - Supprimer
+- `POST /api/whiteboards/:id/elements` - Ajouter element
+- `PUT /api/whiteboards/:id/elements/:eid` - Modifier element
+- `DELETE /api/whiteboards/:id/elements/:eid` - Supprimer element
+
+### Transformations
+- `POST /api/tasks/:id/to-ticket` - Convertir task en ticket
+- `POST /api/tasks/:id/to-project` - Convertir task en projet
+- `POST /api/tickets/:id/to-task` - Convertir ticket en task
+- `POST /api/tickets/:id/to-project` - Convertir ticket en projet
+- `POST /api/projects/:id/to-ticket` - Convertir projet en ticket
+- `POST /api/projects/:id/to-task` - Convertir projet en task
 
 ### Stats & Export
 - `GET /api/stats` - Stats globales
@@ -172,6 +291,39 @@ docker-compose logs -f            # Logs
 - `PUT /api/settings/:key` - Modifier (`auto_archive_enabled`, `auto_archive_days`)
 - `POST /api/auto-archive` - Lancer archivage
 
+## Dashboard Widgets
+
+10 types de widgets personnalisables:
+- `stats-summary` - Resume des statistiques
+- `overdue` - Tickets en retard
+- `today` - Tickets du jour
+- `in-progress` - Tickets en cours
+- `this-week` - Tickets de la semaine
+- `recent` - Activite recente
+- `project-progress` - Progression des projets
+- `priority-chart` - Repartition par priorite
+- `quick-actions` - Actions rapides
+- `calendar-mini` - Mini calendrier
+
+## Whiteboard
+
+### Elements (11 types)
+- `sticky_note` - Post-it avec 8 couleurs predefinies
+- `rectangle`, `circle`, `triangle`, `diamond` - Formes geometriques
+- `line`, `arrow` - Lignes et fleches
+- `text` - Texte libre
+- `image` - Images uploadees
+- `connector` - Connecteurs intelligents entre elements
+- `freehand` - Dessin libre
+
+### Outils
+- Selection, pan, sticky note, rectangle, circle, triangle
+- Diamond, line, arrow, text, connector, freehand, eraser
+
+### Couleurs predefinies
+- Sticky: #fef3c7, #fce7f3, #dbeafe, #d1fae5, #e9d5ff, #fed7aa, #f3f4f6, #fecaca
+- Shapes: #fbbf24, #f472b6, #60a5fa, #34d399, #a78bfa, #fb923c, #9ca3af, #f87171
+
 ## Theme (Enterprise Dark)
 
 ### Palette
@@ -184,9 +336,6 @@ docker-compose logs -f            # Logs
 ### Typography
 - **Headings**: 'Space Grotesk' (Google Fonts)
 - **Body**: 'Inter' (Google Fonts)
-
-
-
 
 ## Labels par defaut
 - Urgent: #ff6b6b
@@ -217,16 +366,21 @@ fa-folder, fa-briefcase, fa-home, fa-code, fa-palette, fa-shopping-cart, fa-hear
 ## Fonctionnalites cles
 - Kanban drag & drop avec quick edit (dblclick titre, click priorite)
 - Actions groupees (selection multiple)
-- Dashboard avec stats projet
+- Dashboard avec widgets personnalisables
+- Epics, Milestones et Sprints (gestion agile)
+- Burndown et Velocity charts
+- Whiteboard collaboratif (11 types d'elements)
+- Transformations (task ↔ ticket ↔ project)
 - Templates reutilisables
 - Dependances entre tickets
 - Timer Pomodoro (25min)
-- Suivi du temps
+- Suivi du temps (time_estimated, time_spent)
 - Import/Export JSON/CSV
 - Auto-archivage configurable
+- Recherche full-text (FR) multi-criteres
 - Undo/Redo (50 actions)
 - Toast notifications
-- Recherche avancee multi-criteres
+- Tickets epingles (favoris)
+- Recurrence (daily, weekly, monthly, yearly)
 
 **Acces**: http://localhost:10001
-

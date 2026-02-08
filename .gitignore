@@ -27,3 +27,9 @@ frontend/dist/
 
 # Claude
 .claude/
+
+# Database backups
+*.sql
+
+# Misc
+nul

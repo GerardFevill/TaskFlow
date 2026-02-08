@@ -1,25 +1,28 @@
+// Whiteboard Component - Tailwind Migration
+
 :host {
-  display: block;
-  width: 100%;
-  height: 100vh;
-  overflow: hidden;
+  @apply block w-full h-screen overflow-hidden;
 }
 
 .whiteboard-container {
-  width: 100%;
-  height: 100%;
+  @apply w-full h-full relative cursor-default overflow-hidden;
   background: var(--bg-primary);
-  position: relative;
-  cursor: default;
-  overflow: hidden;
+
+  &.tool-pan {
+    @apply cursor-grab;
+
+    &.panning {
+      @apply cursor-grabbing;
+    }
+  }
+
+  &.drawing {
+    @apply cursor-crosshair;
+  }
 }
 
-.whiteboard-container.tool-pan { cursor: grab; }
-.whiteboard-container.tool-pan.panning { cursor: grabbing; }
-.whiteboard-container.drawing { cursor: crosshair; }
-
 .canvas-grid {
-  position: absolute;
+  @apply absolute pointer-events-none;
   top: -10000px;
   left: -10000px;
   width: 20000px;
@@ -27,281 +30,195 @@
   background-image:
     linear-gradient(rgba(108, 92, 231, 0.1) 1px, transparent 1px),
     linear-gradient(90deg, rgba(108, 92, 231, 0.1) 1px, transparent 1px);
-  pointer-events: none;
   transform-origin: 0 0;
 }
 
 .canvas-svg {
-  position: absolute;
+  @apply absolute pointer-events-none;
   top: -10000px;
   left: -10000px;
   width: 20000px;
   height: 20000px;
   transform-origin: 0 0;
-  pointer-events: none;
-}
 
-.canvas-svg rect, .canvas-svg ellipse, .canvas-svg polygon, .canvas-svg line, .canvas-svg path {
-  pointer-events: all;
-  cursor: move;
-}
+  rect, ellipse, polygon, line, path {
+    @apply pointer-events-auto cursor-move;
+  }
 
-.canvas-svg .selected {
-  filter: drop-shadow(0 0 4px var(--accent));
-}
+  .selected {
+    filter: drop-shadow(0 0 4px var(--accent));
+  }
 
-.canvas-svg .selection-marquee {
-  fill: rgba(108, 92, 231, 0.1);
-  stroke: var(--accent);
-  stroke-width: 1;
-  stroke-dasharray: 5,3;
-}
+  .selection-marquee {
+    fill: rgba(108, 92, 231, 0.1);
+    stroke: var(--accent);
+    stroke-width: 1;
+    stroke-dasharray: 5, 3;
+  }
 
-.canvas-svg .resize-handle {
-  fill: white;
-  stroke: var(--accent);
-  stroke-width: 2;
-  cursor: pointer;
-}
+  .resize-handle {
+    @apply fill-white cursor-pointer;
+    stroke: var(--accent);
+    stroke-width: 2;
+  }
 
-.canvas-svg .handle-nw { cursor: nwse-resize; }
-.canvas-svg .handle-ne { cursor: nesw-resize; }
-.canvas-svg .handle-se { cursor: nwse-resize; }
-.canvas-svg .handle-sw { cursor: nesw-resize; }
-.canvas-svg .handle-n, .canvas-svg .handle-s { cursor: ns-resize; }
-.canvas-svg .handle-e, .canvas-svg .handle-w { cursor: ew-resize; }
+  .handle-nw { @apply cursor-nwse-resize; }
+  .handle-ne { @apply cursor-nesw-resize; }
+  .handle-se { @apply cursor-nwse-resize; }
+  .handle-sw { @apply cursor-nesw-resize; }
+  .handle-n, .handle-s { @apply cursor-ns-resize; }
+  .handle-e, .handle-w { @apply cursor-ew-resize; }
+}
 
 .canvas-html {
-  position: absolute;
+  @apply absolute pointer-events-none;
   top: -10000px;
   left: -10000px;
   width: 20000px;
   height: 20000px;
   transform-origin: 0 0;
-  pointer-events: none;
 }
 
 .sticky-note {
-  position: absolute;
-  border-radius: 4px;
-  box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
-  padding: 12px;
-  pointer-events: all;
-  cursor: move;
-  display: flex;
-  min-width: 100px;
-  min-height: 80px;
-}
+  @apply absolute rounded p-3 pointer-events-auto cursor-move flex min-w-[100px] min-h-[80px];
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
 
-.sticky-note.selected {
-  box-shadow: 0 0 0 2px var(--accent), 2px 2px 8px rgba(0,0,0,0.2);
+  &.selected {
+    box-shadow: 0 0 0 2px var(--accent), 2px 2px 8px rgba(0, 0, 0, 0.2);
+  }
 }
 
 .sticky-content {
-  width: 100%;
-  height: 100%;
-  font-size: 14px;
-  line-height: 1.4;
+  @apply w-full h-full text-sm leading-relaxed break-words overflow-hidden;
   color: #333;
-  word-wrap: break-word;
-  overflow: hidden;
-}
 
-.sticky-content.editing {
-  background: transparent;
-  border: none;
-  outline: none;
-  resize: none;
-  font-family: inherit;
-  font-size: inherit;
+  &.editing {
+    @apply bg-transparent border-none outline-none resize-none;
+    font: inherit;
+    color: inherit;
+  }
 }
 
 .text-element {
-  position: absolute;
-  pointer-events: all;
-  cursor: move;
-  padding: 4px;
-  min-width: 50px;
-}
+  @apply absolute pointer-events-auto cursor-move p-1 min-w-[50px];
 
-.text-element.selected {
-  outline: 2px solid var(--accent);
+  &.selected {
+    @apply outline-2 outline;
+    outline-color: var(--accent);
+  }
 }
 
 .text-input.editing {
-  background: transparent;
-  border: none;
-  outline: none;
-  width: 100%;
+  @apply bg-transparent border-none outline-none w-full;
   font: inherit;
   color: inherit;
 }
 
 .image-element {
-  position: absolute;
-  pointer-events: all;
-  cursor: move;
-  border-radius: 4px;
-  overflow: hidden;
-}
+  @apply absolute pointer-events-auto cursor-move rounded overflow-hidden;
 
-.image-element.selected {
-  box-shadow: 0 0 0 2px var(--accent);
-}
+  &.selected {
+    box-shadow: 0 0 0 2px var(--accent);
+  }
 
-.image-element img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+  img {
+    @apply w-full h-full object-contain;
+  }
 }
 
 .toolbar {
-  position: fixed;
-  top: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 4px;
-  padding: 8px;
+  @apply fixed top-20 left-1/2 -translate-x-1/2 flex gap-1 p-2 rounded-xl z-[100];
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-  z-index: 100;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .tool-btn {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: transparent;
+  @apply w-10 h-10 flex items-center justify-center border-none bg-transparent rounded-lg cursor-pointer transition-all duration-200;
   color: var(--text);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
+
+  &:hover {
+    background: var(--bg-tertiary);
+  }
+
+  &.active {
+    @apply text-white;
+    background: var(--accent);
+  }
 }
 
-.tool-btn:hover { background: var(--bg-tertiary); }
-.tool-btn.active { background: var(--accent); color: white; }
-
 .toolbar-divider {
-  width: 1px;
+  @apply w-px my-1 mx-1;
   background: var(--border);
-  margin: 4px 4px;
 }
 
 .color-picker {
-  position: fixed;
+  @apply fixed left-1/2 -translate-x-1/2 p-3 rounded-xl z-[100];
   top: 140px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 12px;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-  z-index: 100;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .color-section {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  @apply flex flex-col gap-2;
 }
 
 .color-label {
-  font-size: 12px;
+  @apply text-xs;
   color: var(--text-muted);
 }
 
 .color-grid {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  max-width: 200px;
+  @apply flex gap-1.5 flex-wrap max-w-[200px];
 }
 
 .color-btn {
-  width: 24px;
-  height: 24px;
+  @apply w-6 h-6 rounded cursor-pointer transition-all duration-200;
   border: 2px solid transparent;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
 
-.color-btn:hover {
-  transform: scale(1.1);
-}
+  &:hover {
+    @apply scale-110;
+  }
 
-.color-btn.active {
-  border-color: var(--accent);
+  &.active {
+    border-color: var(--accent);
+  }
 }
 
 .zoom-controls {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  padding: 8px 12px;
+  @apply fixed bottom-5 right-5 flex gap-2 items-center px-3 py-2 rounded-lg z-[100];
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  z-index: 100;
 }
 
 .zoom-btn {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
+  @apply w-8 h-8 flex items-center justify-center border-none rounded-md cursor-pointer transition-all duration-200;
   background: var(--bg-tertiary);
   color: var(--text);
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s;
+
+  &:hover {
+    @apply text-white;
+    background: var(--accent);
+  }
 }
 
-.zoom-btn:hover { background: var(--accent); color: white; }
-
 .zoom-label {
-  min-width: 50px;
-  text-align: center;
-  font-size: 13px;
+  @apply min-w-[50px] text-center text-sm;
   color: var(--text);
 }
 
 .back-btn {
-  position: fixed;
-  top: 80px;
-  left: 20px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
+  @apply fixed top-20 left-5 flex items-center gap-2 px-4 py-2.5 rounded-lg cursor-pointer z-[100] transition-all duration-200;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 8px;
   color: var(--text);
-  cursor: pointer;
-  z-index: 100;
-  transition: all 0.2s;
-}
 
-.back-btn:hover {
-  background: var(--bg-tertiary);
-}
+  &:hover {
+    background: var(--bg-tertiary);
+  }
 
-.back-btn span {
-  max-width: 150px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  span {
+    @apply max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap;
+  }
 }

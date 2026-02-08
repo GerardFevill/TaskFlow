@@ -1,14 +1,11 @@
+// Reminders Component - Tailwind Migration
+
 .reminders-sections {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  @apply flex flex-col gap-5;
 }
 
 .card h3 {
-  margin: 0 0 15px 0;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  @apply m-0 mb-4 flex items-center gap-2.5;
 }
 
 .card.urgent h3 {
@@ -20,72 +17,52 @@
 }
 
 .reminders-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  @apply flex flex-col gap-2.5;
 }
 
 .reminder-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 15px;
+  @apply flex items-center gap-3 p-4 rounded-lg cursor-pointer transition-all duration-200;
   background: var(--bg-tertiary);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
 
-.reminder-item:hover {
-  background: var(--border);
-  transform: translateX(5px);
-}
+  &:hover {
+    @apply translate-x-1;
+    background: var(--border);
+  }
 
-.reminder-item.overdue {
-  border-left: 4px solid var(--danger);
-}
+  &.overdue {
+    @apply border-l-4;
+    border-left-color: var(--danger);
+  }
 
-.reminder-item .title {
-  flex: 1;
-  font-weight: 500;
+  .title {
+    @apply flex-1 font-medium;
+  }
 }
 
 .days-badge {
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-}
+  @apply px-2.5 py-1 rounded-xl text-xs font-semibold;
 
-.days-badge.danger {
-  background: rgba(214, 48, 49, 0.2);
-  color: var(--danger);
-}
+  &.danger {
+    @apply bg-red-500/20;
+    color: var(--danger);
+  }
 
-.days-badge.warning {
-  background: rgba(253, 203, 110, 0.2);
-  color: var(--warning);
+  &.warning {
+    @apply bg-amber-300/20;
+    color: var(--warning);
+  }
 }
 
 .reminder-badge {
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 12px;
-  background: rgba(108, 92, 231, 0.2);
+  @apply px-2.5 py-1 rounded-xl text-xs flex items-center gap-1 bg-indigo-500/20;
   color: var(--accent);
-  display: flex;
-  align-items: center;
-  gap: 4px;
 }
 
 .no-items.success {
+  @apply flex items-center justify-center gap-2.5;
   color: var(--success);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
 
-.no-items.success i {
-  font-size: 20px;
+  i {
+    @apply text-xl;
+  }
 }

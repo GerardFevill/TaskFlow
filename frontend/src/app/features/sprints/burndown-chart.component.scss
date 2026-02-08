@@ -1,59 +1,53 @@
+// Burndown Chart Component - Tailwind Migration
+
 :host {
-  display: block;
+  @apply block;
 }
 
 .burndown-container {
+  @apply rounded-xl p-4;
   background: var(--bg-secondary, #1a1a2e);
-  border-radius: 12px;
-  padding: 16px;
 }
 
 .chart-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
+  @apply flex justify-between items-center mb-3;
 
   h4 {
-    margin: 0;
-    font-size: 14px;
-    font-weight: 600;
+    @apply m-0 text-sm font-semibold;
     color: var(--text-primary, #e8e8f0);
   }
 
   .total {
-    font-size: 12px;
+    @apply text-xs;
     color: var(--text-secondary, #a0a0b0);
   }
 }
 
 .burndown-svg {
-  width: 100%;
-  height: auto;
-  display: block;
+  @apply w-full h-auto block;
 }
 
 .grid-line {
+  @apply opacity-30;
   stroke: var(--border, #3a3a5c);
   stroke-width: 1;
-  opacity: 0.3;
 }
 
 .axis-label {
+  @apply text-[10px];
   fill: var(--text-secondary, #a0a0b0);
-  font-size: 10px;
   font-family: system-ui, -apple-system, sans-serif;
 }
 
 .x-label {
-  font-size: 9px;
+  @apply text-[9px];
 }
 
 .ideal-line {
+  @apply opacity-60;
   stroke: var(--text-secondary, #a0a0b0);
   stroke-width: 2;
   stroke-dasharray: 6, 4;
-  opacity: 0.6;
 }
 
 .actual-line {
@@ -64,11 +58,10 @@
 }
 
 .data-point {
+  @apply cursor-pointer transition-all duration-200;
   fill: #6c5ce7;
   stroke: var(--bg-secondary, #1a1a2e);
   stroke-width: 2;
-  cursor: pointer;
-  transition: r 0.2s ease;
 
   &:hover {
     r: 6;
@@ -76,35 +69,25 @@
 }
 
 .today-line {
+  @apply opacity-80;
   stroke: #ffa502;
   stroke-width: 2;
   stroke-dasharray: 4, 2;
-  opacity: 0.8;
 }
 
 .legend {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  margin-top: 12px;
-  flex-wrap: wrap;
+  @apply flex gap-4 justify-center mt-3 flex-wrap;
 }
 
 .legend-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
+  @apply flex items-center gap-1.5 text-[11px];
   color: var(--text-secondary, #a0a0b0);
 
   .line {
-    width: 20px;
-    height: 2px;
-    border-radius: 1px;
+    @apply w-5 h-0.5 rounded;
   }
 
   &.ideal .line {
-    background: var(--text-secondary, #a0a0b0);
     background: repeating-linear-gradient(
       90deg,
       var(--text-secondary, #a0a0b0) 0,
@@ -119,7 +102,6 @@
   }
 
   &.today .line {
-    background: #ffa502;
     background: repeating-linear-gradient(
       90deg,
       #ffa502 0,
@@ -131,10 +113,8 @@
 }
 
 .loading, .error, .empty {
-  text-align: center;
-  padding: 40px 20px;
+  @apply text-center py-10 px-5 text-sm;
   color: var(--text-secondary, #a0a0b0);
-  font-size: 14px;
 }
 
 .error {

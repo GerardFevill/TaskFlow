@@ -1,202 +1,159 @@
+// Sprints Component - Tailwind Migration
+
 .count-badge {
+  @apply px-3 py-1 rounded-xl text-sm;
   background: var(--bg-tertiary);
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 13px;
   color: var(--text-muted);
 }
 
-.form-card { margin-bottom: 20px; }
+.form-card {
+  @apply mb-5;
+}
 
 .date-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+  @apply flex items-center gap-2;
 
-.date-group label {
-  font-size: 13px;
-  color: var(--text-muted);
+  label {
+    @apply text-sm;
+    color: var(--text-muted);
+  }
 }
 
 .date-input {
-  padding: 10px 12px;
+  @apply px-3 py-2.5 rounded-lg;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   color: var(--text);
-  border-radius: 8px;
 }
 
 .filters {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 20px;
-  align-items: center;
-  flex-wrap: wrap;
-}
+  @apply flex gap-4 mb-5 items-center flex-wrap;
 
-.filters select {
-  padding: 10px 16px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  color: var(--text);
-  border-radius: 8px;
+  select {
+    @apply px-4 py-2.5 rounded-lg;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
 }
 
 .status-filters {
-  display: flex;
-  gap: 8px;
+  @apply flex gap-2;
 }
 
 .filter-btn {
-  padding: 8px 16px;
+  @apply px-4 py-2 rounded-lg cursor-pointer transition-all duration-200 flex items-center gap-1.5;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   color: var(--text-muted);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
 
-.filter-btn:hover { border-color: var(--accent); }
-.filter-btn.active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: white;
+  &:hover {
+    border-color: var(--accent);
+  }
+
+  &.active {
+    @apply text-white;
+    background: var(--accent);
+    border-color: var(--accent);
+  }
 }
 
 .active-sprint-banner {
-  margin-bottom: 30px;
+  @apply mb-8;
 }
 
 .active-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
+  @apply flex items-center gap-2.5 mb-3 font-semibold text-sm uppercase;
   color: var(--plan);
-  font-weight: 600;
-  font-size: 14px;
-  text-transform: uppercase;
 }
 
 .sprint-section {
-  margin-bottom: 30px;
+  @apply mb-8;
 }
 
 .section-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 0 0 16px;
-  font-size: 16px;
+  @apply flex items-center gap-2.5 m-0 mb-4 text-base;
   color: var(--text-muted);
 }
 
 .sprints-grid {
-  display: grid;
+  @apply grid gap-5;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 20px;
 }
 
 .sprint-card {
+  @apply p-5 rounded-xl transition-all duration-200;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 20px;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
 
-.sprint-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-}
+  &:hover {
+    @apply -translate-y-0.5;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  }
 
-.sprint-card.active {
-  border-color: var(--plan);
-  background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(78,205,196,0.1) 100%);
-}
+  &.active {
+    border-color: var(--plan);
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(78, 205, 196, 0.1) 100%);
 
-.sprint-card.active.ending-soon {
-  border-color: var(--warning);
-  background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(253,203,110,0.1) 100%);
-}
+    &.ending-soon {
+      border-color: var(--warning);
+      background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(253, 203, 110, 0.1) 100%);
+    }
+  }
 
-.sprint-card.completed {
-  opacity: 0.7;
-  border-left: 4px solid var(--success);
-}
+  &.completed {
+    @apply opacity-70;
+    border-left: 4px solid var(--success);
+  }
 
-.sprint-card.planning {
-  border-left: 4px solid var(--warning);
+  &.planning {
+    border-left: 4px solid var(--warning);
+  }
 }
 
 .sprint-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 10px;
+  @apply flex items-center gap-3 mb-2.5;
 }
 
 .sprint-name {
-  margin: 0;
-  font-size: 18px;
-  flex: 1;
+  @apply m-0 text-lg flex-1;
 }
 
 .sprint-status {
-  font-size: 11px;
-  padding: 4px 10px;
-  border-radius: 12px;
+  @apply text-[11px] px-2.5 py-1 rounded-xl;
   background: var(--bg-tertiary);
+
+  &.planning { color: var(--warning); }
+  &.active { @apply text-white; background: var(--plan); }
+  &.completed { @apply text-white; background: var(--success); }
 }
 
-.sprint-status.planning { color: var(--warning); }
-.sprint-status.active { background: var(--plan); color: white; }
-.sprint-status.completed { background: var(--success); color: white; }
-
 .sprint-goal {
+  @apply text-sm m-0 mb-3 leading-relaxed italic;
   color: var(--text-muted);
-  font-size: 14px;
-  margin: 0 0 12px;
-  line-height: 1.5;
-  font-style: italic;
 }
 
 .sprint-project {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
+  @apply flex items-center gap-2 text-sm mb-3;
   color: var(--text-muted);
-  margin-bottom: 12px;
 }
 
 .sprint-dates {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 16px;
-}
+  @apply flex items-center gap-4 mb-4;
 
-.sprint-dates.compact {
-  font-size: 13px;
-  color: var(--text-muted);
+  &.compact {
+    @apply text-sm;
+    color: var(--text-muted);
+  }
 }
 
 .date-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
+  @apply flex items-center gap-2 text-sm;
   color: var(--text);
-}
 
-.date-item i {
-  color: var(--accent);
+  i {
+    color: var(--accent);
+  }
 }
 
 .date-arrow {
@@ -204,209 +161,169 @@
 }
 
 .sprint-countdown {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 12px;
+  @apply flex flex-col gap-2 p-3 rounded-lg mb-4;
   background: var(--bg-tertiary);
-  border-radius: 8px;
-  margin-bottom: 16px;
-}
 
-.sprint-countdown i {
-  margin-right: 8px;
-  color: var(--plan);
-}
+  i {
+    @apply mr-2;
+    color: var(--plan);
+  }
 
-.sprint-countdown.warning i {
-  color: var(--warning);
-}
+  &.warning i {
+    color: var(--warning);
+  }
 
-.sprint-countdown .overdue {
-  color: var(--danger);
+  .overdue {
+    color: var(--danger);
+  }
 }
 
 .countdown-bar {
-  height: 4px;
+  @apply h-1 rounded overflow-hidden;
   background: var(--border);
-  border-radius: 2px;
-  overflow: hidden;
 }
 
 .countdown-progress {
-  height: 100%;
+  @apply h-full transition-all duration-300;
   background: var(--plan);
-  transition: width 0.3s;
-}
 
-.sprint-countdown.warning .countdown-progress {
-  background: var(--warning);
+  .sprint-countdown.warning & {
+    background: var(--warning);
+  }
 }
 
 .sprint-stats-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
+  @apply flex justify-between items-center mb-4;
 }
 
 .sprint-stats {
-  display: flex;
-  gap: 20px;
+  @apply flex gap-5;
 }
 
 .burndown-section {
-  margin-bottom: 16px;
+  @apply mb-4;
 }
 
 .velocity-section {
-  margin-top: 40px;
-  padding-top: 30px;
+  @apply mt-10 pt-8;
   border-top: 1px solid var(--border);
 }
 
 .stat {
-  display: flex;
-  flex-direction: column;
+  @apply flex flex-col;
 }
 
 .stat-value {
-  font-size: 18px;
-  font-weight: 600;
+  @apply text-lg font-semibold;
   color: var(--text);
 }
 
 .stat-label {
-  font-size: 11px;
+  @apply text-[11px] uppercase;
   color: var(--text-muted);
-  text-transform: uppercase;
 }
 
 .sprint-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 16px;
-  padding-top: 16px;
+  @apply flex gap-2 mt-4 pt-4;
   border-top: 1px solid var(--border);
 }
 
 .action-btn {
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @apply w-9 h-9 flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200 no-underline;
   background: var(--bg-tertiary);
   border: 1px solid var(--border);
-  border-radius: 8px;
   color: var(--text-muted);
-  cursor: pointer;
-  transition: all 0.2s;
-  text-decoration: none;
-}
 
-.action-btn:hover {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: white;
-}
+  &:hover {
+    @apply text-white;
+    background: var(--accent);
+    border-color: var(--accent);
+  }
 
-.action-btn.add-ticket {
-  background: var(--success);
-  border-color: var(--success);
-  color: white;
-}
+  &.add-ticket {
+    @apply text-white;
+    background: var(--success);
+    border-color: var(--success);
 
-.action-btn.add-ticket:hover {
-  opacity: 0.9;
-}
+    &:hover {
+      @apply opacity-90;
+    }
+  }
 
-.action-btn.highlight {
-  background: var(--plan);
-  border-color: var(--plan);
-  color: white;
-}
+  &.highlight {
+    @apply text-white;
+    background: var(--plan);
+    border-color: var(--plan);
+  }
 
-.action-btn.danger:hover {
-  background: var(--danger);
-  border-color: var(--danger);
+  &.danger:hover {
+    background: var(--danger);
+    border-color: var(--danger);
+  }
 }
 
 .quick-ticket-form {
-  display: flex;
-  gap: 8px;
-  margin: 12px 0;
-  padding: 12px;
+  @apply flex gap-2 my-3 p-3 rounded-lg;
   background: var(--bg-tertiary);
-  border-radius: 8px;
 }
 
 .quick-ticket-input {
-  flex: 1;
-  padding: 8px 12px;
+  @apply flex-1 px-3 py-2 rounded-md text-sm;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   color: var(--text);
-  border-radius: 6px;
-  font-size: 14px;
-}
 
-.quick-ticket-input:focus {
-  outline: none;
-  border-color: var(--accent);
+  &:focus {
+    @apply outline-none;
+    border-color: var(--accent);
+  }
 }
 
 .edit-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  @apply flex flex-col gap-3;
 }
 
 .edit-input, .edit-textarea, .edit-select {
-  padding: 10px 12px;
+  @apply px-3 py-2.5 rounded-lg text-sm;
   background: var(--bg-tertiary);
   border: 1px solid var(--border);
   color: var(--text);
-  border-radius: 8px;
-  font-size: 14px;
 }
 
 .edit-textarea {
-  min-height: 60px;
-  resize: vertical;
+  @apply min-h-[60px] resize-y;
 }
 
 .edit-row {
-  display: flex;
-  gap: 12px;
+  @apply flex gap-3;
 }
 
 .edit-actions {
-  display: flex;
-  gap: 8px;
+  @apply flex gap-2;
 }
 
-.btn-small { padding: 8px 12px; }
+.btn-small {
+  @apply px-3 py-2;
+}
 
 @media (max-width: 768px) {
   .sprints-grid {
-    grid-template-columns: 1fr;
+    @apply grid-cols-1;
   }
 
   .filters {
-    flex-direction: column;
-    align-items: stretch;
+    @apply flex-col items-stretch;
   }
 
   .status-filters {
-    flex-wrap: wrap;
+    @apply flex-wrap;
   }
 
   .form-row {
-    flex-direction: column;
+    @apply flex-col;
   }
 
   .date-group {
-    width: 100%;
+    @apply w-full;
   }
 }

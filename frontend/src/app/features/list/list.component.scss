@@ -1,197 +1,155 @@
+// List Component - Tailwind Migration
+
 .page-header .count {
-  margin-left: auto;
+  @apply ml-auto px-3.5 py-1.5 rounded-full text-sm;
   background: var(--bg-tertiary);
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 13px;
   color: var(--text-muted);
 }
 
 .filters-bar {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
+  @apply flex gap-3 mb-5 flex-wrap;
 }
 
 .search-input {
-  flex: 1;
-  min-width: 200px;
-  padding: 10px 16px;
+  @apply flex-1 min-w-[200px] px-4 py-2.5 rounded-lg text-sm;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 8px;
   color: var(--text);
-  font-size: 14px;
-}
 
-.search-input:focus {
-  outline: none;
-  border-color: var(--accent);
+  &:focus {
+    @apply outline-none;
+    border-color: var(--accent);
+  }
 }
 
 .filters-bar select {
-  padding: 10px 16px;
+  @apply px-4 py-2.5 rounded-lg text-sm cursor-pointer;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 8px;
   color: var(--text);
-  font-size: 14px;
-  cursor: pointer;
 }
 
 .table-container {
+  @apply rounded-xl overflow-hidden;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  overflow: hidden;
 }
 
 .tickets-table {
-  width: 100%;
-  border-collapse: collapse;
-}
+  @apply w-full border-collapse;
 
-.tickets-table th {
-  padding: 14px 16px;
-  text-align: left;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  background: var(--bg-tertiary);
-  border-bottom: 1px solid var(--border);
-}
+  th {
+    @apply px-4 py-3.5 text-left text-xs font-semibold uppercase;
+    color: var(--text-muted);
+    background: var(--bg-tertiary);
+    border-bottom: 1px solid var(--border);
+  }
 
-.tickets-table td {
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--border);
-  vertical-align: middle;
-}
+  td {
+    @apply px-4 py-3.5 align-middle;
+    border-bottom: 1px solid var(--border);
+  }
 
-.tickets-table tr {
-  cursor: pointer;
-  transition: background 0.2s;
-}
+  tr {
+    @apply cursor-pointer transition-colors duration-200;
+  }
 
-.tickets-table tbody tr:hover {
-  background: var(--bg-tertiary);
-}
+  tbody tr:hover {
+    background: var(--bg-tertiary);
+  }
 
-.tickets-table tr.pinned {
-  background: rgba(108,92,231,0.05);
-}
+  tr.pinned {
+    @apply bg-indigo-500/5;
+  }
 
-.tickets-table tr.done {
-  opacity: 0.6;
+  tr.done {
+    @apply opacity-60;
+  }
 }
 
 .col-pin {
-  width: 40px;
-  text-align: center;
+  @apply w-10 text-center;
+
+  i {
+    @apply cursor-pointer;
+    color: var(--text-muted);
+
+    &.pinned {
+      color: var(--warning);
+    }
+  }
 }
 
-.col-pin i {
-  color: var(--text-muted);
-  cursor: pointer;
-}
-
-.col-pin i.pinned {
-  color: var(--warning);
-}
-
-.col-priority { width: 100px; }
-.col-status { width: 100px; }
-.col-due { width: 100px; }
-.col-tasks { width: 120px; }
-.col-actions { width: 50px; }
+.col-priority { @apply w-[100px]; }
+.col-status { @apply w-[100px]; }
+.col-due { @apply w-[100px]; }
+.col-tasks { @apply w-[120px]; }
+.col-actions { @apply w-[50px]; }
 
 .priority-badge {
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
+  @apply px-2.5 py-1 rounded text-xs font-semibold uppercase;
+
+  &.do { @apply bg-red-500/20; color: var(--do); }
+  &.plan { @apply bg-cyan-500/20; color: var(--plan); }
+  &.delegate { @apply bg-orange-500/20; color: var(--delegate); }
+  &.eliminate { @apply bg-gray-500/20; color: var(--eliminate); }
 }
 
-.priority-badge.do { background: rgba(255,107,107,0.2); color: var(--do); }
-.priority-badge.plan { background: rgba(78,205,196,0.2); color: var(--plan); }
-.priority-badge.delegate { background: rgba(255,165,2,0.2); color: var(--delegate); }
-.priority-badge.eliminate { background: rgba(99,110,114,0.2); color: var(--eliminate); }
-
 .title {
-  font-weight: 500;
+  @apply font-medium;
 }
 
 .labels {
-  display: flex;
-  gap: 4px;
-  margin-top: 4px;
+  @apply flex gap-1 mt-1;
 }
 
 .label-badge {
-  padding: 2px 6px;
-  border-radius: 3px;
-  font-size: 10px;
-  color: white;
+  @apply px-1.5 py-0.5 rounded text-[10px] text-white;
 }
 
 .col-due.overdue {
+  @apply font-semibold;
   color: var(--danger);
-  font-weight: 600;
 }
 
 .task-progress {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  @apply flex items-center gap-2;
 }
 
 .progress-bar {
-  width: 50px;
-  height: 6px;
+  @apply w-[50px] h-1.5 rounded overflow-hidden;
   background: var(--bg-tertiary);
-  border-radius: 3px;
-  overflow: hidden;
 }
 
 .progress {
-  height: 100%;
+  @apply h-full rounded;
   background: var(--accent);
-  border-radius: 3px;
 }
 
 .action-btn {
-  padding: 6px 10px;
-  background: transparent;
-  border: none;
+  @apply px-2.5 py-1.5 bg-transparent border-none cursor-pointer rounded;
   color: var(--text-muted);
-  cursor: pointer;
-  border-radius: 4px;
-}
 
-.action-btn:hover {
-  background: rgba(214,48,49,0.1);
-  color: var(--danger);
+  &:hover {
+    @apply bg-red-500/10;
+    color: var(--danger);
+  }
 }
 
 .empty-state {
-  padding: 60px 20px;
-  text-align: center;
+  @apply py-16 px-5 text-center;
   color: var(--text-muted);
-}
 
-.empty-state i {
-  font-size: 48px;
-  margin-bottom: 15px;
-  opacity: 0.5;
+  i {
+    @apply text-5xl mb-4 opacity-50;
+  }
 }
 
 @media (max-width: 768px) {
   .col-due, .col-tasks {
-    display: none;
+    @apply hidden;
   }
   .filters-bar select {
-    width: 100%;
+    @apply w-full;
   }
 }

@@ -1,30 +1,24 @@
+// Velocity Chart Component - Tailwind Migration
+
 :host {
-  display: block;
+  @apply block;
 }
 
 .velocity-container {
+  @apply rounded-xl p-4;
   background: var(--bg-secondary, #1a1a2e);
-  border-radius: 12px;
-  padding: 16px;
 }
 
 .chart-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-  gap: 8px;
+  @apply flex justify-between items-center mb-4 flex-wrap gap-2;
 
   h4 {
-    margin: 0;
-    font-size: 14px;
-    font-weight: 600;
+    @apply m-0 text-sm font-semibold;
     color: var(--text-primary, #e8e8f0);
   }
 
   .average {
-    font-size: 12px;
+    @apply text-xs;
     color: var(--text-secondary, #a0a0b0);
 
     strong {
@@ -34,123 +28,73 @@
 }
 
 .chart-body {
-  display: flex;
-  height: 180px;
-  gap: 8px;
+  @apply flex h-[180px] gap-2;
 }
 
 .y-axis {
-  width: 30px;
-  position: relative;
-  flex-shrink: 0;
+  @apply w-[30px] relative flex-shrink-0;
 }
 
 .y-label {
-  position: absolute;
-  right: 4px;
-  font-size: 10px;
+  @apply absolute right-1 text-[10px] translate-y-1/2;
   color: var(--text-secondary, #a0a0b0);
-  transform: translateY(50%);
 }
 
 .bars-container {
-  flex: 1;
-  display: flex;
-  align-items: flex-end;
-  gap: 8px;
-  position: relative;
-  padding-bottom: 24px;
+  @apply flex-1 flex items-end gap-2 relative pb-6;
   border-bottom: 1px solid var(--border, #3a3a5c);
 }
 
 .bar-wrapper {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  height: 100%;
-  min-width: 32px;
-  max-width: 60px;
+  @apply flex-1 flex flex-col items-center h-full min-w-[32px] max-w-[60px];
 }
 
 .bar {
-  width: 100%;
+  @apply w-full rounded-t min-h-1 relative transition-all duration-300 flex justify-center;
   background: linear-gradient(180deg, #6c5ce7 0%, #5849c4 100%);
-  border-radius: 4px 4px 0 0;
-  min-height: 4px;
-  position: relative;
-  transition: height 0.3s ease;
-  display: flex;
-  justify-content: center;
 
   &.above-average {
     background: linear-gradient(180deg, #4ecdc4 0%, #3eb5ae 100%);
   }
 
   .value {
-    position: absolute;
-    top: -20px;
-    font-size: 11px;
-    font-weight: 600;
+    @apply absolute -top-5 text-[11px] font-semibold;
     color: var(--text-primary, #e8e8f0);
   }
 }
 
 .label {
-  font-size: 10px;
+  @apply text-[10px] mt-1.5 text-center max-w-full overflow-hidden text-ellipsis whitespace-nowrap;
   color: var(--text-secondary, #a0a0b0);
-  margin-top: 6px;
-  text-align: center;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .average-line {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 2px;
+  @apply absolute left-0 right-0 h-0.5 pointer-events-none;
   background: #ffa502;
-  pointer-events: none;
 
   &::before {
-    content: '';
-    position: absolute;
-    left: -4px;
-    top: -3px;
-    width: 8px;
-    height: 8px;
+    @apply content-[''] absolute -left-1 -top-[3px] w-2 h-2 rounded-full;
     background: #ffa502;
-    border-radius: 50%;
   }
 
   .average-label {
-    position: absolute;
-    right: -8px;
-    top: -8px;
-    font-size: 9px;
+    @apply absolute -right-2 -top-2 text-[9px] font-semibold;
     color: #ffa502;
-    font-weight: 600;
   }
 }
 
 .chart-footer {
-  margin-top: 12px;
-  text-align: center;
+  @apply mt-3 text-center;
 
   .total {
-    font-size: 11px;
+    @apply text-[11px];
     color: var(--text-secondary, #a0a0b0);
   }
 }
 
 .loading, .error {
-  text-align: center;
-  padding: 40px 20px;
+  @apply text-center py-10 px-5 text-sm;
   color: var(--text-secondary, #a0a0b0);
-  font-size: 14px;
 }
 
 .error {
@@ -158,23 +102,19 @@
 }
 
 .empty {
-  text-align: center;
-  padding: 40px 20px;
+  @apply text-center py-10 px-5;
   color: var(--text-secondary, #a0a0b0);
 
   i {
-    font-size: 32px;
-    margin-bottom: 12px;
-    opacity: 0.5;
+    @apply text-3xl mb-3 opacity-50;
   }
 
   p {
-    margin: 0 0 4px;
-    font-size: 14px;
+    @apply m-0 mb-1 text-sm;
     color: var(--text-primary, #e8e8f0);
   }
 
   span {
-    font-size: 12px;
+    @apply text-xs;
   }
 }

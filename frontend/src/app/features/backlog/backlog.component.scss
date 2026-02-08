@@ -1,67 +1,42 @@
+// Backlog Component - Tailwind Migration
+
 .page-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
+  @apply flex items-center gap-3 mb-5;
 }
 
 .btn-new {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
+  @apply ml-auto flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm text-white no-underline;
   background: var(--accent);
-  color: white;
-  border-radius: 8px;
-  text-decoration: none;
-  font-size: 14px;
 }
 
 .view-tabs {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
+  @apply flex gap-2 mb-5 flex-wrap p-2 rounded-xl;
   background: var(--bg-secondary);
-  padding: 8px;
-  border-radius: 12px;
   border: 1px solid var(--border);
 }
 
 .tab-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  background: transparent;
-  border: none;
-  border-radius: 8px;
+  @apply flex items-center gap-2 px-4 py-2.5 bg-transparent border-none rounded-lg cursor-pointer transition-all duration-200 text-sm;
   color: var(--text-muted);
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 14px;
-}
 
-.tab-btn:hover {
-  background: var(--bg-tertiary);
-  color: var(--text);
-}
+  &:hover {
+    background: var(--bg-tertiary);
+    color: var(--text);
+  }
 
-.tab-btn.active {
-  background: var(--accent);
-  color: white;
+  &.active {
+    @apply text-white;
+    background: var(--accent);
+  }
 }
 
 .tab-count {
-  background: rgba(255,255,255,0.2);
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-size: 12px;
-}
+  @apply px-2 py-0.5 rounded-lg text-xs;
+  background: rgba(255, 255, 255, 0.2);
 
-.tab-btn:not(.active) .tab-count {
-  background: var(--bg-tertiary);
+  .tab-btn:not(.active) & {
+    background: var(--bg-tertiary);
+  }
 }
 
 .view-content {
@@ -69,367 +44,273 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { @apply opacity-0 translate-y-2.5; }
+  to { @apply opacity-100 translate-y-0; }
 }
 
 .view-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
+  @apply flex items-center gap-3 px-4 py-3 rounded-lg mb-5 text-sm;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-left: 4px solid var(--accent);
-  border-radius: 8px;
-  margin-bottom: 20px;
   color: var(--text-muted);
-  font-size: 14px;
-}
 
-.view-info i { color: var(--accent); }
+  i {
+    color: var(--accent);
+  }
+}
 
 /* Project Section */
 .project-section {
+  @apply mb-3 rounded-xl overflow-hidden;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  margin-bottom: 12px;
-  overflow: hidden;
 }
 
 .section-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
+  @apply flex items-center gap-3 p-4 cursor-pointer transition-colors duration-200;
 
-.section-header:hover {
-  background: var(--bg-tertiary);
-}
+  &:hover {
+    background: var(--bg-tertiary);
+  }
 
-.section-header h3 {
-  margin: 0;
-  font-size: 15px;
-  flex: 1;
+  h3 {
+    @apply m-0 text-[15px] flex-1;
+  }
+
+  .chevron {
+    color: var(--text-muted);
+  }
 }
 
 .section-count {
-  font-size: 13px;
-  color: var(--text-muted);
-}
-
-.section-header .chevron {
+  @apply text-sm;
   color: var(--text-muted);
 }
 
 .section-content {
-  padding: 0 16px 16px;
+  @apply px-4 pb-4;
   border-top: 1px solid var(--border);
 }
 
 .empty-section {
-  padding: 20px;
-  text-align: center;
+  @apply p-5 text-center text-sm;
   color: var(--text-muted);
-  font-size: 14px;
 }
 
 /* Two Columns Layout */
 .two-columns {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  @apply grid grid-cols-2 gap-5;
 }
 
 .backlog-column, .targets-column {
+  @apply rounded-xl overflow-hidden;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  overflow: hidden;
 }
 
 .column-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 16px;
+  @apply flex items-center gap-2.5 p-4;
   background: var(--bg-tertiary);
   border-bottom: 1px solid var(--border);
-}
 
-.column-header h3 {
-  margin: 0;
-  font-size: 15px;
-  flex: 1;
-}
+  h3 {
+    @apply m-0 text-[15px] flex-1;
+  }
 
-.column-header .count {
-  background: var(--accent);
-  color: white;
-  padding: 2px 10px;
-  border-radius: 10px;
-  font-size: 12px;
+  .count {
+    @apply px-2.5 py-0.5 rounded-lg text-xs text-white;
+    background: var(--accent);
+  }
 }
 
 .column-content {
-  padding: 12px;
-  max-height: 500px;
-  overflow-y: auto;
+  @apply p-3 max-h-[500px] overflow-y-auto;
 }
 
 .empty-column {
-  padding: 30px 20px;
-  text-align: center;
+  @apply py-8 px-5 text-center text-sm;
   color: var(--text-muted);
-  font-size: 14px;
 }
 
 .btn-small {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
+  @apply inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-sm no-underline text-white mt-3;
   background: var(--accent);
-  color: white;
-  border-radius: 6px;
-  text-decoration: none;
-  font-size: 13px;
-  margin-top: 12px;
 }
 
 /* Target Cards */
 .target-card {
+  @apply p-3.5 rounded-lg mb-2.5;
   background: var(--bg-tertiary);
   border: 1px solid var(--border);
   border-left: 4px solid var(--accent);
-  border-radius: 8px;
-  padding: 14px;
-  margin-bottom: 10px;
-}
 
-.target-card.active {
-  border-left-color: var(--plan);
-}
+  &.active {
+    border-left-color: var(--plan);
+  }
 
-.target-card.overdue {
-  border-left-color: var(--danger);
+  &.overdue {
+    border-left-color: var(--danger);
+  }
 }
 
 .target-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
+  @apply flex items-center justify-between mb-2;
 }
 
 .target-name {
-  font-weight: 500;
-  font-size: 14px;
+  @apply font-medium text-sm;
 }
 
 .target-status {
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 8px;
+  @apply text-[11px] px-2 py-0.5 rounded-lg;
   background: var(--bg-secondary);
-}
 
-.target-status.active {
-  background: var(--plan);
-  color: white;
+  &.active {
+    @apply text-white;
+    background: var(--plan);
+  }
 }
 
 .epic-color {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
+  @apply w-3 h-3 rounded-full;
 }
 
 .target-info {
-  display: flex;
-  gap: 16px;
-  font-size: 12px;
+  @apply flex gap-4 text-xs mb-2.5;
   color: var(--text-muted);
-  margin-bottom: 10px;
-}
 
-.target-info .overdue {
-  color: var(--danger);
+  .overdue {
+    color: var(--danger);
+  }
 }
 
 .target-actions select {
-  width: 100%;
-  padding: 8px 12px;
+  @apply w-full px-3 py-2 rounded-md text-sm cursor-pointer;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   color: var(--text);
-  border-radius: 6px;
-  font-size: 13px;
-  cursor: pointer;
 }
 
 /* Ticket Items */
 .ticket-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  @apply flex flex-col gap-2;
 }
 
 .ticket-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 14px;
+  @apply flex items-start gap-3 p-3.5 rounded-lg transition-colors duration-200;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  transition: border-color 0.2s;
-}
 
-.ticket-item:hover {
-  border-color: var(--accent);
+  &:hover {
+    border-color: var(--accent);
+  }
 }
 
 .ticket-priority {
-  padding-top: 4px;
+  @apply pt-1;
 }
 
 .priority-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  display: block;
+  @apply w-2.5 h-2.5 rounded-full block;
+
+  &.do { background: var(--do); }
+  &.plan { background: var(--plan); }
+  &.delegate { background: var(--delegate); }
+  &.eliminate { background: var(--eliminate); }
 }
 
-.priority-dot.do { background: var(--do); }
-.priority-dot.plan { background: var(--plan); }
-.priority-dot.delegate { background: var(--delegate); }
-.priority-dot.eliminate { background: var(--eliminate); }
-
 .ticket-content {
-  flex: 1;
-  min-width: 0;
+  @apply flex-1 min-w-0;
 }
 
 .ticket-title {
-  font-size: 14px;
+  @apply text-sm block mb-1.5 no-underline;
   color: var(--text);
-  text-decoration: none;
-  display: block;
-  margin-bottom: 6px;
-}
 
-.ticket-title:hover {
-  color: var(--accent);
+  &:hover {
+    color: var(--accent);
+  }
 }
 
 .ticket-meta {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
+  @apply flex gap-3 flex-wrap;
 }
 
 .meta-tag {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
+  @apply flex items-center gap-1 text-xs;
   color: var(--text-muted);
-}
 
-.meta-tag.overdue {
-  color: var(--danger);
+  &.overdue {
+    color: var(--danger);
+  }
 }
 
 .ticket-assigns {
-  display: flex;
-  gap: 8px;
-}
+  @apply flex gap-2;
 
-.ticket-assigns select {
-  padding: 6px 10px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  border-radius: 6px;
-  font-size: 12px;
-  cursor: pointer;
-  max-width: 120px;
+  select {
+    @apply px-2.5 py-1.5 rounded-md text-xs cursor-pointer max-w-[120px];
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+  }
 }
 
 /* Compact Ticket Item */
 .ticket-item-compact {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
+  @apply flex items-center gap-2.5 px-3 py-2.5 rounded-md mb-1.5;
   background: var(--bg-tertiary);
-  border-radius: 6px;
-  margin-bottom: 6px;
-}
 
-.ticket-item-compact .ticket-title {
-  flex: 1;
-  font-size: 13px;
-  margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  .ticket-title {
+    @apply flex-1 text-sm m-0 whitespace-nowrap overflow-hidden text-ellipsis;
+  }
 }
 
 .project-tag {
-  font-size: 11px;
-  padding: 2px 8px;
+  @apply text-[11px] px-2 py-0.5 rounded-lg;
   background: var(--bg-secondary);
-  border-radius: 8px;
   color: var(--text-muted);
 }
 
 /* Empty State */
 .empty-state {
-  text-align: center;
-  padding: 60px 20px;
+  @apply text-center py-16 px-5;
   color: var(--text-muted);
-}
 
-.empty-state i {
-  font-size: 48px;
-  margin-bottom: 16px;
-  color: var(--success);
-}
+  i {
+    @apply text-5xl mb-4;
+    color: var(--success);
+  }
 
-.empty-state h3 {
-  margin: 0 0 8px;
-  color: var(--text);
+  h3 {
+    @apply m-0 mb-2;
+    color: var(--text);
+  }
 }
 
 @media (max-width: 768px) {
   .view-tabs {
-    flex-direction: column;
+    @apply flex-col;
   }
 
   .tab-btn {
-    justify-content: flex-start;
+    @apply justify-start;
   }
 
   .two-columns {
-    grid-template-columns: 1fr;
+    @apply grid-cols-1;
   }
 
   .ticket-assigns {
-    flex-direction: column;
-    width: 100%;
-  }
+    @apply flex-col w-full;
 
-  .ticket-assigns select {
-    max-width: none;
+    select {
+      @apply max-w-none;
+    }
   }
 
   .ticket-item {
-    flex-direction: column;
+    @apply flex-col;
   }
 }

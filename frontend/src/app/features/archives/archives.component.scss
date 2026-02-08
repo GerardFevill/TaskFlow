@@ -1,196 +1,139 @@
-.page-header {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
+// Archives Component - Tailwind Migration
 
-.page-header .count {
-  margin-left: auto;
-  background: var(--bg-tertiary);
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 13px;
-  color: var(--text-muted);
+.page-header {
+  @apply flex items-center gap-4;
+
+  .count {
+    @apply ml-auto px-3.5 py-1.5 rounded-full text-sm;
+    background: var(--bg-tertiary);
+    color: var(--text-muted);
+  }
 }
 
 .empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 80px 20px;
-  text-align: center;
-}
+  @apply flex flex-col items-center justify-center py-20 px-5 text-center;
 
-.empty-state i {
-  font-size: 64px;
-  color: var(--text-muted);
-  opacity: 0.5;
-  margin-bottom: 20px;
-}
+  i {
+    @apply text-6xl opacity-50 mb-5;
+    color: var(--text-muted);
+  }
 
-.empty-state h3 {
-  margin: 0 0 10px 0;
-  color: var(--text);
-}
+  h3 {
+    @apply m-0 mb-2.5;
+    color: var(--text);
+  }
 
-.empty-state p {
-  color: var(--text-muted);
-  margin: 0;
+  p {
+    @apply m-0;
+    color: var(--text-muted);
+  }
 }
 
 .archives-grid {
-  display: grid;
+  @apply grid gap-5 mb-20;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 20px;
-  margin-bottom: 80px;
 }
 
 .archive-card {
+  @apply p-5 rounded-xl opacity-80 transition-all duration-200;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 20px;
   border-left: 4px solid var(--accent);
-  opacity: 0.8;
-  transition: all 0.2s;
-}
 
-.archive-card:hover {
-  opacity: 1;
-  transform: translateY(-2px);
-}
+  &:hover {
+    @apply opacity-100 -translate-y-0.5;
+  }
 
-.archive-card.do { border-left-color: var(--do); }
-.archive-card.plan { border-left-color: var(--plan); }
-.archive-card.delegate { border-left-color: var(--delegate); }
-.archive-card.eliminate { border-left-color: var(--eliminate); }
+  &.do { border-left-color: var(--do); }
+  &.plan { border-left-color: var(--plan); }
+  &.delegate { border-left-color: var(--delegate); }
+  &.eliminate { border-left-color: var(--eliminate); }
+}
 
 .card-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
-}
+  @apply flex items-center gap-2.5 mb-3;
 
-.card-header .title {
-  flex: 1;
-  font-weight: 600;
-  font-size: 16px;
+  .title {
+    @apply flex-1 font-semibold text-base;
+  }
 }
 
 .description {
+  @apply text-sm leading-relaxed m-0 mb-4;
   color: var(--text-muted);
-  font-size: 14px;
-  margin: 0 0 15px 0;
-  line-height: 1.5;
 }
 
 .card-meta {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 15px;
-  flex-wrap: wrap;
+  @apply flex gap-4 mb-4 flex-wrap;
 }
 
 .meta-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
+  @apply flex items-center gap-1.5 text-sm;
   color: var(--text-muted);
 }
 
 .card-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding-top: 15px;
+  @apply flex items-center gap-2.5 pt-4;
   border-top: 1px solid var(--border);
 }
 
 .btn-restore, .btn-view, .btn-delete {
-  padding: 8px 14px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  font-size: 13px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.2s;
+  @apply px-3.5 py-2 rounded-md border-none cursor-pointer text-sm flex items-center gap-1.5 transition-all duration-200;
 }
 
 .btn-restore {
+  @apply text-white;
   background: var(--success);
-  color: white;
-}
 
-.btn-restore:hover { opacity: 0.9; }
+  &:hover {
+    @apply opacity-90;
+  }
+}
 
 .btn-view {
   background: var(--bg-tertiary);
   color: var(--text);
   border: 1px solid var(--border);
-}
 
-.btn-view:hover { background: var(--border); }
+  &:hover {
+    background: var(--border);
+  }
+}
 
 .btn-delete {
-  background: transparent;
+  @apply bg-transparent ml-auto;
   color: var(--danger);
-  margin-left: auto;
+
+  &:hover {
+    @apply bg-red-500/10;
+  }
 }
 
-.btn-delete:hover { background: rgba(214,48,49,0.1); }
-
 .bulk-actions-bar {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 15px;
+  @apply fixed bottom-5 left-1/2 -translate-x-1/2 flex gap-4 px-6 py-4 rounded-full;
   background: var(--bg-secondary);
-  padding: 15px 25px;
-  border-radius: 50px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   border: 1px solid var(--border);
 }
 
 .btn-danger, .btn-restore-all {
-  padding: 10px 20px;
-  border-radius: 25px;
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
+  @apply px-5 py-2.5 rounded-full border-none cursor-pointer text-sm flex items-center gap-2 font-medium text-white;
 }
 
 .btn-danger {
   background: var(--danger);
-  color: white;
 }
 
 .btn-restore-all {
   background: var(--success);
-  color: white;
 }
 
 @media (max-width: 768px) {
   .archives-grid {
-    grid-template-columns: 1fr;
-    margin-bottom: 140px;
+    @apply grid-cols-1 mb-36;
   }
 
   .bulk-actions-bar {
-    bottom: 80px;
-    left: 15px;
-    right: 15px;
-    transform: none;
-    justify-content: center;
+    @apply bottom-20 left-4 right-4 transform-none justify-center;
   }
 }

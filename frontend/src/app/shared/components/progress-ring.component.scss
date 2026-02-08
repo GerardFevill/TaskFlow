@@ -1,26 +1,27 @@
+// Progress Ring Component - Tailwind Migration
+
 :host {
-  display: inline-block;
+  @apply inline-block;
 }
 
 .progress-ring {
-  display: block;
+  @apply block;
 }
 
 .bg {
-  opacity: 0.2;
+  @apply opacity-20;
 }
 
 .progress {
-  transition: stroke-dashoffset 0.5s ease-in-out;
+  @apply transition-all duration-500 ease-in-out;
 }
 
 .percentage-text {
-  font-weight: 600;
+  @apply font-semibold;
   font-family: system-ui, -apple-system, sans-serif;
 }
 
 .label-text {
-  font-weight: 400;
+  @apply font-normal opacity-70;
   font-family: system-ui, -apple-system, sans-serif;
-  opacity: 0.7;
 }

@@ -1,123 +1,97 @@
+// History Component - Tailwind Migration
+
 .activity-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  @apply flex flex-col gap-2;
 }
 
 .activity-item {
-  display: flex;
-  gap: 15px;
-  padding: 16px 20px;
+  @apply flex gap-4 px-5 py-4 rounded-lg cursor-pointer transition-all duration-200;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
 
-.activity-item:hover {
-  background: var(--bg-tertiary);
-  transform: translateX(5px);
+  &:hover {
+    @apply translate-x-1;
+    background: var(--bg-tertiary);
+  }
 }
 
 .activity-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
+  @apply w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0;
 
-.activity-icon.create {
-  background: rgba(0, 206, 201, 0.15);
-  color: var(--success);
-}
+  &.create {
+    @apply bg-teal-500/15;
+    color: var(--success);
+  }
 
-.activity-icon.update {
-  background: rgba(108, 92, 231, 0.15);
-  color: var(--accent);
-}
+  &.update {
+    @apply bg-indigo-500/15;
+    color: var(--accent);
+  }
 
-.activity-icon.delete {
-  background: rgba(214, 48, 49, 0.15);
-  color: var(--danger);
-}
+  &.delete {
+    @apply bg-red-500/15;
+    color: var(--danger);
+  }
 
-.activity-icon.status {
-  background: rgba(78, 205, 196, 0.15);
-  color: var(--plan);
-}
+  &.status {
+    @apply bg-cyan-500/15;
+    color: var(--plan);
+  }
 
-.activity-icon.time {
-  background: rgba(255, 165, 2, 0.15);
-  color: var(--delegate);
-}
+  &.time {
+    @apply bg-orange-400/15;
+    color: var(--delegate);
+  }
 
-.activity-icon.attachment {
-  background: rgba(69, 170, 242, 0.15);
-  color: #45aaf2;
-}
+  &.attachment {
+    background: rgba(69, 170, 242, 0.15);
+    color: #45aaf2;
+  }
 
-.activity-icon.comment {
-  background: rgba(165, 94, 234, 0.15);
-  color: #a55eea;
+  &.comment {
+    background: rgba(165, 94, 234, 0.15);
+    color: #a55eea;
+  }
 }
 
 .activity-content {
-  flex: 1;
-  min-width: 0;
+  @apply flex-1 min-w-0;
 }
 
 .activity-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
+  @apply flex justify-between items-center mb-1;
 }
 
 .ticket-title {
-  font-weight: 600;
+  @apply font-semibold whitespace-nowrap overflow-hidden text-ellipsis;
   color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .activity-time {
-  font-size: 12px;
+  @apply text-xs flex-shrink-0;
   color: var(--text-muted);
-  flex-shrink: 0;
 }
 
 .activity-description {
-  font-size: 14px;
+  @apply text-sm;
   color: var(--text-muted);
 }
 
 .empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 80px 20px;
-  text-align: center;
-}
+  @apply flex flex-col items-center justify-center py-20 px-5 text-center;
 
-.empty-state i {
-  font-size: 64px;
-  color: var(--text-muted);
-  opacity: 0.5;
-  margin-bottom: 20px;
-}
+  i {
+    @apply text-6xl opacity-50 mb-5;
+    color: var(--text-muted);
+  }
 
-.empty-state h3 {
-  margin: 0 0 10px 0;
-  color: var(--text);
-}
+  h3 {
+    @apply m-0 mb-2.5;
+    color: var(--text);
+  }
 
-.empty-state p {
-  color: var(--text-muted);
-  margin: 0;
+  p {
+    @apply m-0;
+    color: var(--text-muted);
+  }
 }

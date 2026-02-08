@@ -1,229 +1,169 @@
-.page-header {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
+// Templates Component - Tailwind Migration
 
-.page-header .btn { margin-left: auto; }
+.page-header {
+  @apply flex items-center gap-4;
+
+  .btn {
+    @apply ml-auto;
+  }
+}
 
 .empty-state {
-  text-align: center;
-  padding: 60px 20px;
+  @apply text-center py-16 px-5 rounded-xl;
   background: var(--bg-secondary);
-  border-radius: 12px;
-}
 
-.empty-state i {
-  font-size: 48px;
-  color: var(--text-muted);
-  margin-bottom: 20px;
-}
+  i {
+    @apply text-5xl mb-5;
+    color: var(--text-muted);
+  }
 
-.empty-state h3 { margin: 0 0 10px 0; }
-.empty-state p { color: var(--text-muted); margin-bottom: 20px; }
+  h3 {
+    @apply m-0 mb-2.5;
+  }
+
+  p {
+    @apply mb-5;
+    color: var(--text-muted);
+  }
+}
 
 .templates-grid {
-  display: grid;
+  @apply grid gap-5;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
 }
 
 .template-card {
+  @apply p-5 rounded-xl transition-all duration-200;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 20px;
-  transition: all 0.2s;
-}
 
-.template-card:hover {
-  border-color: var(--accent);
-  transform: translateY(-2px);
+  &:hover {
+    @apply -translate-y-0.5;
+    border-color: var(--accent);
+  }
 }
 
 .template-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 15px;
-}
+  @apply flex items-center gap-2.5 mb-4;
 
-.template-header h3 {
-  flex: 1;
-  margin: 0;
-  font-size: 16px;
+  h3 {
+    @apply flex-1 m-0 text-base;
+  }
 }
 
 .priority-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
+  @apply w-2.5 h-2.5 rounded-full;
 
-.priority-dot.do { background: var(--do); }
-.priority-dot.plan { background: var(--plan); }
-.priority-dot.delegate { background: var(--delegate); }
-.priority-dot.eliminate { background: var(--eliminate); }
+  &.do { background: var(--do); }
+  &.plan { background: var(--plan); }
+  &.delegate { background: var(--delegate); }
+  &.eliminate { background: var(--eliminate); }
+}
 
 .delete-btn {
-  background: transparent;
-  border: none;
+  @apply bg-transparent border-none cursor-pointer p-1;
   color: var(--text-muted);
-  cursor: pointer;
-  padding: 5px;
-}
 
-.delete-btn:hover { color: var(--danger); }
+  &:hover {
+    color: var(--danger);
+  }
+}
 
 .template-preview {
+  @apply rounded-lg p-3 mb-4;
   background: var(--bg-tertiary);
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 15px;
-}
 
-.template-preview strong {
-  display: block;
-  margin-bottom: 5px;
-}
+  strong {
+    @apply block mb-1;
+  }
 
-.template-preview p {
-  margin: 0;
-  font-size: 13px;
-  color: var(--text-muted);
+  p {
+    @apply m-0 text-sm;
+    color: var(--text-muted);
+  }
 }
 
 .template-meta {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 15px;
+  @apply flex gap-2 flex-wrap mb-4;
 }
 
 .priority-badge {
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
+  @apply px-2.5 py-1 rounded-xl text-[11px] font-semibold uppercase;
+
+  &.do { @apply bg-red-500/20; color: var(--do); }
+  &.plan { @apply bg-cyan-500/20; color: var(--plan); }
+  &.delegate { @apply bg-orange-400/20; color: var(--delegate); }
+  &.eliminate { @apply bg-gray-500/20; color: var(--eliminate); }
 }
 
-.priority-badge.do { background: rgba(255,107,107,0.2); color: var(--do); }
-.priority-badge.plan { background: rgba(78,205,196,0.2); color: var(--plan); }
-.priority-badge.delegate { background: rgba(255,165,2,0.2); color: var(--delegate); }
-.priority-badge.eliminate { background: rgba(99,110,114,0.2); color: var(--eliminate); }
-
 .project-badge {
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 11px;
-  color: white;
-  display: flex;
-  align-items: center;
-  gap: 5px;
+  @apply px-2.5 py-1 rounded-xl text-[11px] text-white flex items-center gap-1;
 }
 
 .template-actions {
-  display: flex;
-  justify-content: flex-end;
+  @apply flex justify-end;
 }
 
 /* Modal */
 .modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
+  @apply fixed inset-0 flex items-center justify-center z-[1000];
+  background: rgba(0, 0, 0, 0.7);
 }
 
 .modal {
+  @apply w-full max-w-[500px] max-h-[90vh] overflow-auto rounded-xl;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  width: 100%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow: auto;
 }
 
 .modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px;
+  @apply flex items-center justify-between p-5;
   border-bottom: 1px solid var(--border);
-}
 
-.modal-header h3 {
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+  h3 {
+    @apply m-0 flex items-center gap-2.5;
+  }
 
-.modal-header button {
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-size: 18px;
+  button {
+    @apply bg-transparent border-none cursor-pointer text-lg;
+    color: var(--text-muted);
+  }
 }
 
 .modal-body {
-  padding: 20px;
+  @apply p-5;
 }
 
 .form-group {
-  margin-bottom: 15px;
-}
+  @apply mb-4;
 
-.form-group label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  font-size: 13px;
-  color: var(--text-muted);
-}
+  label {
+    @apply block mb-2 font-medium text-sm;
+    color: var(--text-muted);
+  }
 
-.form-group input,
-.form-group select,
-.form-group textarea {
-  width: 100%;
-  padding: 10px 12px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  color: var(--text);
-  font-size: 14px;
-}
+  input, select, textarea {
+    @apply w-full px-3 py-2.5 rounded-lg text-sm;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    color: var(--text);
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-  outline: none;
-  border-color: var(--accent);
-}
+    &:focus {
+      @apply outline-none;
+      border-color: var(--accent);
+    }
+  }
 
-.form-group textarea {
-  resize: vertical;
+  textarea {
+    @apply resize-y;
+  }
 }
 
 .form-row-inline {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
+  @apply grid grid-cols-2 gap-4;
 }
 
 .modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  padding: 20px;
+  @apply flex justify-end gap-2.5 p-5;
   border-top: 1px solid var(--border);
 }

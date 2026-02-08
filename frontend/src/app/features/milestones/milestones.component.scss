@@ -1,168 +1,134 @@
+// Milestones Component - Tailwind Migration
+
 .count-badge {
+  @apply px-3 py-1 rounded-xl text-sm;
   background: var(--bg-tertiary);
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 13px;
   color: var(--text-muted);
 }
 
-.form-card { margin-bottom: 20px; }
+.form-card {
+  @apply mb-5;
+}
 
 .date-input {
-  padding: 10px 12px;
+  @apply px-3 py-2.5 rounded-lg;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   color: var(--text);
-  border-radius: 8px;
 }
 
 .filters {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 20px;
-  align-items: center;
-  flex-wrap: wrap;
-}
+  @apply flex gap-4 mb-5 items-center flex-wrap;
 
-.filters select {
-  padding: 10px 16px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  color: var(--text);
-  border-radius: 8px;
+  select {
+    @apply px-4 py-2.5 rounded-lg;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
 }
 
 .status-filters {
-  display: flex;
-  gap: 8px;
+  @apply flex gap-2;
 }
 
 .filter-btn {
-  padding: 8px 16px;
+  @apply px-4 py-2 rounded-lg cursor-pointer transition-all duration-200;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   color: var(--text-muted);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
 
-.filter-btn:hover { border-color: var(--accent); }
-.filter-btn.active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: white;
+  &:hover {
+    border-color: var(--accent);
+  }
+
+  &.active {
+    @apply text-white;
+    background: var(--accent);
+    border-color: var(--accent);
+  }
 }
 
 .milestones-timeline {
-  position: relative;
-  padding-left: 40px;
-}
+  @apply relative pl-10;
 
-.milestones-timeline::before {
-  content: '';
-  position: absolute;
-  left: 15px;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--border);
+  &::before {
+    @apply content-[''] absolute top-0 bottom-0 w-0.5;
+    left: 15px;
+    background: var(--border);
+  }
 }
 
 .milestone-item {
-  position: relative;
-  margin-bottom: 24px;
+  @apply relative mb-6;
 }
 
 .timeline-marker {
-  position: absolute;
-  left: -40px;
-  top: 20px;
-  width: 32px;
-  height: 32px;
+  @apply absolute -left-10 top-5 w-8 h-8 rounded-full flex items-center justify-center z-[1];
   background: var(--bg-secondary);
   border: 2px solid var(--accent);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   color: var(--accent);
-  z-index: 1;
-}
 
-.timeline-marker.overdue {
-  border-color: var(--danger);
-  color: var(--danger);
-}
+  &.overdue {
+    border-color: var(--danger);
+    color: var(--danger);
+  }
 
-.timeline-marker.closed {
-  border-color: var(--success);
-  background: var(--success);
-  color: white;
+  &.closed {
+    @apply text-white;
+    background: var(--success);
+    border-color: var(--success);
+  }
 }
 
 .milestone-content {
+  @apply p-5 rounded-xl transition-all duration-200;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 20px;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
 
-.milestone-item.overdue .milestone-content {
-  border-left: 4px solid var(--danger);
-}
+  .milestone-item.overdue & {
+    border-left: 4px solid var(--danger);
+  }
 
-.milestone-item.closed .milestone-content {
-  opacity: 0.7;
-  border-left: 4px solid var(--success);
-}
+  .milestone-item.closed & {
+    @apply opacity-70;
+    border-left: 4px solid var(--success);
+  }
 
-.milestone-content:hover {
-  transform: translateX(4px);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  &:hover {
+    @apply translate-x-1;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  }
 }
 
 .milestone-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
+  @apply flex items-center gap-3 mb-2;
 }
 
 .milestone-name {
-  margin: 0;
-  font-size: 18px;
-  flex: 1;
+  @apply m-0 text-lg flex-1;
 }
 
 .milestone-status {
-  font-size: 11px;
-  padding: 4px 10px;
-  border-radius: 12px;
+  @apply text-[11px] px-2.5 py-1 rounded-xl;
   background: var(--bg-tertiary);
+
+  &.open { color: var(--warning); }
+  &.closed { @apply text-white; background: var(--success); }
 }
 
-.milestone-status.open { color: var(--warning); }
-.milestone-status.closed { background: var(--success); color: white; }
-
 .milestone-description {
+  @apply text-sm m-0 mb-3 leading-relaxed;
   color: var(--text-muted);
-  font-size: 14px;
-  margin: 0 0 12px;
-  line-height: 1.5;
 }
 
 .milestone-meta {
-  display: flex;
-  gap: 20px;
-  margin-bottom: 16px;
-  font-size: 13px;
+  @apply flex gap-5 mb-4 text-sm;
   color: var(--text-muted);
-}
 
-.milestone-meta i {
-  margin-right: 6px;
+  i {
+    @apply mr-1.5;
+  }
 }
 
 .due-date.overdue {
@@ -170,156 +136,134 @@
 }
 
 .overdue-badge {
-  background: rgba(214,48,49,0.2);
+  @apply px-2 py-0.5 rounded-lg text-[11px] ml-2;
+  background: rgba(214, 48, 49, 0.2);
   color: var(--danger);
-  padding: 2px 8px;
-  border-radius: 8px;
-  font-size: 11px;
-  margin-left: 8px;
 }
 
 .soon-badge {
-  background: rgba(253,203,110,0.2);
+  @apply px-2 py-0.5 rounded-lg text-[11px] ml-2;
+  background: rgba(253, 203, 110, 0.2);
   color: var(--warning);
-  padding: 2px 8px;
-  border-radius: 8px;
-  font-size: 11px;
-  margin-left: 8px;
 }
 
 .milestone-stats-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
+  @apply flex justify-between items-center mb-3;
 }
 
 .milestone-stats {
-  display: flex;
-  gap: 20px;
+  @apply flex gap-5;
 }
 
 .stat {
-  display: flex;
-  flex-direction: column;
+  @apply flex flex-col;
 }
 
 .stat-value {
-  font-size: 18px;
-  font-weight: 600;
+  @apply text-lg font-semibold;
   color: var(--text);
 }
 
 .stat-label {
-  font-size: 11px;
+  @apply text-[11px] uppercase;
   color: var(--text-muted);
-  text-transform: uppercase;
 }
 
 .milestone-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 16px;
-  padding-top: 16px;
+  @apply flex gap-2 mt-4 pt-4;
   border-top: 1px solid var(--border);
 }
 
 .action-btn {
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @apply w-9 h-9 flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200 no-underline;
   background: var(--bg-tertiary);
   border: 1px solid var(--border);
-  border-radius: 8px;
   color: var(--text-muted);
-  cursor: pointer;
-  transition: all 0.2s;
-  text-decoration: none;
-}
 
-.action-btn:hover {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: white;
-}
+  &:hover {
+    @apply text-white;
+    background: var(--accent);
+    border-color: var(--accent);
+  }
 
-.action-btn.add-ticket {
-  background: var(--success);
-  border-color: var(--success);
-  color: white;
-}
+  &.add-ticket {
+    @apply text-white;
+    background: var(--success);
+    border-color: var(--success);
 
-.action-btn.add-ticket:hover {
-  opacity: 0.9;
-}
+    &:hover {
+      @apply opacity-90;
+    }
+  }
 
-.action-btn.danger:hover {
-  background: var(--danger);
-  border-color: var(--danger);
+  &.danger:hover {
+    background: var(--danger);
+    border-color: var(--danger);
+  }
 }
 
 .quick-ticket-form {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 12px;
-  padding: 12px;
+  @apply flex gap-2 mb-3 p-3 rounded-lg;
   background: var(--bg-tertiary);
-  border-radius: 8px;
 }
 
 .quick-ticket-input {
-  flex: 1;
-  padding: 8px 12px;
+  @apply flex-1 px-3 py-2 rounded-md text-sm;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   color: var(--text);
-  border-radius: 6px;
-  font-size: 14px;
-}
 
-.quick-ticket-input:focus {
-  outline: none;
-  border-color: var(--accent);
+  &:focus {
+    @apply outline-none;
+    border-color: var(--accent);
+  }
 }
 
 .edit-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  @apply flex flex-col gap-3;
 }
 
 .edit-input, .edit-textarea, .edit-select {
-  padding: 10px 12px;
+  @apply px-3 py-2.5 rounded-lg text-sm;
   background: var(--bg-tertiary);
   border: 1px solid var(--border);
   color: var(--text);
-  border-radius: 8px;
-  font-size: 14px;
 }
 
 .edit-textarea {
-  min-height: 60px;
-  resize: vertical;
+  @apply min-h-[60px] resize-y;
 }
 
 .edit-row {
-  display: flex;
-  gap: 12px;
+  @apply flex gap-3;
 }
 
 .edit-actions {
-  display: flex;
-  gap: 8px;
+  @apply flex gap-2;
 }
 
-.btn-small { padding: 8px 12px; }
+.btn-small {
+  @apply px-3 py-2;
+}
 
 @media (max-width: 768px) {
-  .milestones-timeline { padding-left: 30px; }
-  .milestones-timeline::before { left: 10px; }
-  .timeline-marker { left: -30px; width: 24px; height: 24px; font-size: 10px; }
-  .filters { flex-direction: column; align-items: stretch; }
-  .status-filters { flex-wrap: wrap; }
+  .milestones-timeline {
+    @apply pl-8;
+
+    &::before {
+      @apply left-2.5;
+    }
+  }
+
+  .timeline-marker {
+    @apply -left-8 w-6 h-6 text-[10px];
+  }
+
+  .filters {
+    @apply flex-col items-stretch;
+  }
+
+  .status-filters {
+    @apply flex-wrap;
+  }
 }

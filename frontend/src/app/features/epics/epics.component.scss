@@ -1,269 +1,204 @@
+// Epics Component - Tailwind Migration
+
 .count-badge {
+  @apply px-3 py-1 rounded-xl text-sm;
   background: var(--bg-tertiary);
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 13px;
   color: var(--text-muted);
 }
 
 .form-card {
-  margin-bottom: 20px;
+  @apply mb-5;
 }
 
 .color-picker {
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  background: none;
+  @apply w-10 h-10 p-0 border-none rounded-lg cursor-pointer bg-transparent;
 }
 
 .filters {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 20px;
-  align-items: center;
-  flex-wrap: wrap;
-}
+  @apply flex gap-4 mb-5 items-center flex-wrap;
 
-.filters select {
-  padding: 10px 16px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  color: var(--text);
-  border-radius: 8px;
+  select {
+    @apply px-4 py-2.5 rounded-lg;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
 }
 
 .status-filters {
-  display: flex;
-  gap: 8px;
+  @apply flex gap-2;
 }
 
 .filter-btn {
-  padding: 8px 16px;
+  @apply px-4 py-2 rounded-lg cursor-pointer transition-all duration-200;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   color: var(--text-muted);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
 
-.filter-btn:hover {
-  border-color: var(--accent);
-}
+  &:hover {
+    border-color: var(--accent);
+  }
 
-.filter-btn.active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: white;
+  &.active {
+    @apply text-white;
+    background: var(--accent);
+    border-color: var(--accent);
+  }
 }
 
 .epics-grid {
-  display: grid;
+  @apply grid gap-5;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
 }
 
 .epic-card {
+  @apply p-5 rounded-xl transition-all duration-200;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-left: 4px solid var(--accent);
-  border-radius: 12px;
-  padding: 20px;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
 
-.epic-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  &:hover {
+    @apply -translate-y-0.5;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  }
 }
 
 .epic-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
+  @apply flex items-center gap-3 mb-3;
 }
 
 .epic-color {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
+  @apply w-3 h-3 rounded-full;
 }
 
 .epic-name {
-  margin: 0;
-  font-size: 18px;
-  flex: 1;
+  @apply m-0 text-lg flex-1;
 }
 
 .epic-status {
-  font-size: 11px;
-  padding: 4px 10px;
-  border-radius: 12px;
+  @apply text-[11px] px-2.5 py-1 rounded-xl;
   background: var(--bg-tertiary);
+
+  &.open { color: var(--warning); }
+  &.in_progress { @apply text-white; background: var(--plan); }
+  &.completed { @apply text-white; background: var(--success); }
 }
 
-.epic-status.open { color: var(--warning); }
-.epic-status.in_progress { background: var(--plan); color: white; }
-.epic-status.completed { background: var(--success); color: white; }
-
 .epic-description {
+  @apply text-sm m-0 mb-3 leading-relaxed;
   color: var(--text-muted);
-  font-size: 14px;
-  margin: 0 0 12px;
-  line-height: 1.5;
 }
 
 .epic-project {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
+  @apply flex items-center gap-2 text-sm mb-4;
   color: var(--text-muted);
-  margin-bottom: 16px;
 }
 
 .epic-stats-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
+  @apply flex justify-between items-center mb-3;
 }
 
 .epic-stats {
-  display: flex;
-  gap: 20px;
+  @apply flex gap-5;
 }
 
 .stat {
-  display: flex;
-  flex-direction: column;
+  @apply flex flex-col;
 }
 
 .stat-value {
-  font-size: 20px;
-  font-weight: 600;
+  @apply text-xl font-semibold;
   color: var(--text);
 }
 
 .stat-label {
-  font-size: 11px;
+  @apply text-[11px] uppercase;
   color: var(--text-muted);
-  text-transform: uppercase;
 }
 
 .epic-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 16px;
-  padding-top: 16px;
+  @apply flex gap-2 mt-4 pt-4;
   border-top: 1px solid var(--border);
 }
 
 .action-btn {
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @apply w-9 h-9 flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200 no-underline;
   background: var(--bg-tertiary);
   border: 1px solid var(--border);
-  border-radius: 8px;
   color: var(--text-muted);
-  cursor: pointer;
-  transition: all 0.2s;
-  text-decoration: none;
-}
 
-.action-btn:hover {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: white;
-}
+  &:hover {
+    @apply text-white;
+    background: var(--accent);
+    border-color: var(--accent);
+  }
 
-.action-btn.add-ticket {
-  background: var(--success);
-  border-color: var(--success);
-  color: white;
-}
+  &.add-ticket {
+    @apply text-white;
+    background: var(--success);
+    border-color: var(--success);
 
-.action-btn.add-ticket:hover {
-  opacity: 0.9;
-}
+    &:hover {
+      @apply opacity-90;
+    }
+  }
 
-.action-btn.danger:hover {
-  background: var(--danger);
-  border-color: var(--danger);
+  &.danger:hover {
+    background: var(--danger);
+    border-color: var(--danger);
+  }
 }
 
 .quick-ticket-form {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 12px;
-  padding: 12px;
+  @apply flex gap-2 mb-3 p-3 rounded-lg;
   background: var(--bg-tertiary);
-  border-radius: 8px;
 }
 
 .quick-ticket-input {
-  flex: 1;
-  padding: 8px 12px;
+  @apply flex-1 px-3 py-2 rounded-md text-sm;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   color: var(--text);
-  border-radius: 6px;
-  font-size: 14px;
-}
 
-.quick-ticket-input:focus {
-  outline: none;
-  border-color: var(--accent);
+  &:focus {
+    @apply outline-none;
+    border-color: var(--accent);
+  }
 }
 
 .edit-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  @apply flex flex-col gap-3;
 }
 
 .edit-input, .edit-textarea, .edit-select {
-  padding: 10px 12px;
+  @apply px-3 py-2.5 rounded-lg text-sm;
   background: var(--bg-tertiary);
   border: 1px solid var(--border);
   color: var(--text);
-  border-radius: 8px;
-  font-size: 14px;
 }
 
 .edit-textarea {
-  min-height: 80px;
-  resize: vertical;
+  @apply min-h-[80px] resize-y;
 }
 
 .edit-actions {
-  display: flex;
-  gap: 8px;
+  @apply flex gap-2;
 }
 
 .btn-small {
-  padding: 8px 12px;
+  @apply px-3 py-2;
 }
 
 @media (max-width: 768px) {
   .epics-grid {
-    grid-template-columns: 1fr;
+    @apply grid-cols-1;
   }
 
   .filters {
-    flex-direction: column;
-    align-items: stretch;
+    @apply flex-col items-stretch;
   }
 
   .status-filters {
-    flex-wrap: wrap;
+    @apply flex-wrap;
   }
 }
