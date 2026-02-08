@@ -1,0 +1,17 @@
+name: CI/CD Backend
+
+on:
+  push:
+    branches: [main, develop]
+    paths: ['backend/**']
+  pull_request:
+    branches: [main]
+    paths: ['backend/**']
+
+jobs:
+  ci:
+    uses: GerardFevill/shared-workflows/.github/workflows/ci-nodejs.yml@master
+    with:
+      working-directory: backend
+      image-suffix: -backend
+    secrets: inherit

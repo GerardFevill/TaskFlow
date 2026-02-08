@@ -1,0 +1,17 @@
+name: CI/CD Frontend
+
+on:
+  push:
+    branches: [main, develop]
+    paths: ['frontend/**']
+  pull_request:
+    branches: [main]
+    paths: ['frontend/**']
+
+jobs:
+  ci:
+    uses: GerardFevill/shared-workflows/.github/workflows/ci-angular.yml@master
+    with:
+      working-directory: frontend
+      image-suffix: -frontend
+    secrets: inherit
